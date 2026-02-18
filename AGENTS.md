@@ -36,3 +36,38 @@ Format the suggestion as:
 
 We work in small git-committable chunks, involving USER for checking our changes and letting them commit
 
+# Technology stack (keep current)
+
+Maintain this section as the source of truth for the repo's major technologies.
+
+- Runtime/language: Node.js + TypeScript
+- CLI framework: `commander`
+- Build tooling: `tsup`
+- Test framework: `jest` (`ts-jest`)
+- Current package format: CommonJS (`"type": "commonjs"`)
+
+# Technology list maintenance rules
+
+- If you introduce, remove, or replace a meaningful library/tool (CLI, build, test, runtime, lint, formatting, DB, framework), update this technology list in the same change.
+- Keep entries short and practical; prefer the library/tool name and its purpose in this repo.
+- Ensure the list stays consistent with `package.json`, build config, and test config.
+- If a tool is temporary/experimental, mark it explicitly as such.
+
+# Project layout (high-level, keep current)
+
+Update this map whenever directories, entrypoints, or core config locations change.
+
+```text
+.
+├── AGENTS.md              # Agent instructions and project conventions
+├── README.md              # Product-facing overview and CLI contract
+├── package.json           # NPM metadata, scripts, dependencies, bin mapping
+├── jest.config.cjs        # Jest configuration
+├── tsconfig.json          # TypeScript compiler configuration
+├── tsup.config.ts         # Build/bundle configuration
+├── src/
+│   ├── cli.ts             # CLI entrypoint and command registration
+│   ├── commands/          # CLI command handlers (e.g., init)
+│   └── fs/                # Filesystem/domain helpers (repo layout/state setup)
+└── tests/                 # Jest test suites for units/commands
+```
