@@ -148,7 +148,18 @@ Creates `bets/`, `bets/_logs/`, and `bets/_evidence/`.
 ```bash
 bep new landing-page
 ```
-Creates `bets/landing-page.md` from a template and opens it in your editor (or prints it to stdout).
+Runs an interactive wizard to collect:
+- one cap type: `max_hours` or `max_calendar_days`
+- a required numeric value for the chosen cap type
+- `default_action` (`kill` / `narrow` / `pivot` / `extend`)
+
+Behavior:
+- `id` must be unique: if `bets/<id>.md` already exists, the command fails.
+- You can move back one step in the wizard to revise the previous answer.
+- Chosen values are shown above each next question.
+- `leading_indicator` is intentionally deferred until validation mechanics are defined.
+
+Creates `bets/landing-page.md` from a template.
 
 ### Activate a bet for work
 ```bash
