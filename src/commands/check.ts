@@ -2,7 +2,11 @@ import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
 import { isValidBetId } from "../bep/id";
-import { parseManualLeadingIndicator } from "../bep/checkInput";
+import {
+  evaluateManualComparison,
+  formatManualComparisonOperator,
+  parseManualLeadingIndicator,
+} from "../bep/checkInput";
 import { BETS_DIR, EVIDENCE_DIR, initRepo } from "../fs/init";
 import { runCheckPrompt } from "../ui/checkPrompt";
 
@@ -12,9 +16,11 @@ type ManualEvidenceSnapshot = {
   mode: "manual";
   leading_indicator: {
     type: "manual";
-    target: string;
+    operator: "lt" | "lte" | "eq" | "gte" | "gt";
+    target: number;
   };
-  observed_value: string;
+  observed_value: number;
+  meets_target: boolean;
   notes?: string;
 };
 
@@ -58,7 +64,7 @@ export async function runCheck(rootDir: string, id: string): Promise<number> {
 
   if (!leadingIndicatorResult.ok) {
     console.error(
-      `Bet '${id}' has invalid leading_indicator: ${leadingIndicatorResult.error} Expected { type: "manual", target: "<value>" }.`,
+      `Bet '${id}' has invalid leading_indicator: ${leadingIndicatorResult.error} Expected { type: "manual", operator: "lt|lte|eq|gte|gt", target: <number> }.`,
     );
     return 1;
   }
@@ -69,12 +75,19 @@ export async function runCheck(rootDir: string, id: string): Promise<number> {
     return 1;
   }
 
+  const meetsTarget = evaluateManualComparison(
+    promptResult.observedValue,
+    leadingIndicatorResult.value.operator,
+    leadingIndicatorResult.value.target,
+  );
+
   const snapshot: ManualEvidenceSnapshot = {
     id,
     checked_at: new Date().toISOString(),
     mode: "manual",
     leading_indicator: leadingIndicatorResult.value,
     observed_value: promptResult.observedValue,
+    meets_target: meetsTarget,
     notes: promptResult.notes,
   };
 
@@ -88,6 +101,9 @@ export async function runCheck(rootDir: string, id: string): Promise<number> {
     return 1;
   }
 
-  console.log(`Captured manual evidence for '${id}' at ${relativeEvidencePath}.`);
+  const comparisonLabel = `${promptResult.observedValue} ${formatManualComparisonOperator(leadingIndicatorResult.value.operator)} ${leadingIndicatorResult.value.target}`;
+  console.log(
+    `Captured manual evidence for '${id}' at ${relativeEvidencePath}. Result: ${meetsTarget ? "PASS" : "FAIL"} (${comparisonLabel}).`,
+  );
   return 0;
 }

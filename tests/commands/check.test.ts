@@ -89,7 +89,7 @@ describe("runCheck", () => {
 
     mockedRunCheckPrompt.mockResolvedValue({
       cancelled: false,
-      observedValue: "13 signups",
+      observedValue: 13,
       notes: "Traffic source was newsletter.",
     });
 
@@ -97,7 +97,7 @@ describe("runCheck", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nleading_indicator:\n  type: manual\n  target: '>= 20 signups in 7d'\n---\n",
+        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nleading_indicator:\n  type: manual\n  operator: gte\n  target: 20\n---\n",
         "utf8",
       );
 
@@ -107,20 +107,22 @@ describe("runCheck", () => {
         id: string;
         mode: string;
         checked_at: string;
-        observed_value: string;
+        observed_value: number;
+        meets_target: boolean;
         notes?: string;
-        leading_indicator: { type: string; target: string };
+        leading_indicator: { type: string; operator: string; target: number };
       };
 
       expect(exitCode).toBe(0);
       expect(evidence.id).toBe("landing-page");
       expect(evidence.mode).toBe("manual");
       expect(typeof evidence.checked_at).toBe("string");
-      expect(evidence.leading_indicator).toEqual({ type: "manual", target: ">= 20 signups in 7d" });
-      expect(evidence.observed_value).toBe("13 signups");
+      expect(evidence.leading_indicator).toEqual({ type: "manual", operator: "gte", target: 20 });
+      expect(evidence.observed_value).toBe(13);
+      expect(evidence.meets_target).toBe(false);
       expect(evidence.notes).toBe("Traffic source was newsletter.");
       expect(logSpy).toHaveBeenCalledWith(
-        "Captured manual evidence for 'landing-page' at bets/_evidence/landing-page.json.",
+        "Captured manual evidence for 'landing-page' at bets/_evidence/landing-page.json. Result: FAIL (13 >= 20).",
       );
     } finally {
       logSpy.mockRestore();
@@ -140,7 +142,7 @@ describe("runCheck", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nleading_indicator:\n  type: manual\n  target: '>= 20 signups in 7d'\n---\n",
+        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nleading_indicator:\n  type: manual\n  operator: gte\n  target: 20\n---\n",
         "utf8",
       );
 

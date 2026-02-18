@@ -9,7 +9,8 @@ describe("renderNewBetMarkdown", () => {
       defaultAction: "kill",
       leadingIndicator: {
         type: "manual",
-        target: ">= 20 signups in 7d",
+        operator: "gte",
+        target: 20,
       },
     });
 
@@ -21,7 +22,8 @@ describe("renderNewBetMarkdown", () => {
       created_at: "2026-02-18T00:00:00.000Z",
       leading_indicator: {
         type: "manual",
-        target: ">= 20 signups in 7d",
+        operator: "gte",
+        target: 20,
       },
     });
     expect(parsed.content).toContain("# Budgeted Engineering Proposal");
@@ -34,7 +36,8 @@ describe("renderNewBetMarkdown", () => {
       defaultAction: "pivot",
       leadingIndicator: {
         type: "manual",
-        target: ">= 10 activations",
+        operator: "gt",
+        target: 10,
       },
     });
 
@@ -51,7 +54,8 @@ describe("renderNewBetMarkdown", () => {
       defaultAction: "extend",
       leadingIndicator: {
         type: "manual",
-        target: ">= 50 demos booked",
+        operator: "eq",
+        target: 50,
       },
       maxHours: 12,
       maxCalendarDays: 10,

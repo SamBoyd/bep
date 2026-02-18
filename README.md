@@ -44,7 +44,8 @@ max_calendar_days: 10
 
 leading_indicator:
   type: manual
-  target: ">= 20 signups in 7d"
+  operator: gte
+  target: 20
 
 default_action: kill
 ---
@@ -161,7 +162,8 @@ Runs an interactive wizard to collect:
 - one cap type: `max_hours` or `max_calendar_days`
 - a required numeric value for the chosen cap type
 - `default_action` (`kill` / `narrow` / `pivot` / `extend`)
-- `leading_indicator.target` (required freeform string)
+- `leading_indicator.operator` (one of `lt`, `lte`, `eq`, `gte`, `gt`)
+- `leading_indicator.target` (required numeric threshold)
 
 Behavior:
 - `id` must be unique: if `bets/<id>.md` already exists, the command fails.
@@ -197,11 +199,12 @@ Each JSONL entry has: `id`, `started_at`, `stopped_at`, `duration_seconds`.
 bep check landing-page
 ```
 Runs an interactive manual check:
-- prompts for an observed value (required)
+- prompts for an observed value (required numeric)
 - prompts for notes (optional)
-- writes a snapshot to `bets/_evidence/<id>.json`
+- compares observed value vs `leading_indicator.target` using `leading_indicator.operator`
+- writes a snapshot to `bets/_evidence/<id>.json` including the comparison result
 
-This v0 flow captures evidence only; it does not auto-evaluate pass/fail yet.
+This v0 flow captures evidence and evaluates pass/fail for manual numeric checks.
 
 ### Summarize current bets
 ```bash

@@ -1,4 +1,5 @@
 import { isCancel, select, text } from "@clack/prompts";
+import type { ManualComparisonOperator } from "../bep/checkInput";
 import type { DefaultAction } from "../bep/template";
 
 const BACK_VALUE = "__back__";
@@ -23,7 +24,12 @@ export type ActionPromptResult =
   | { kind: "cancel" };
 
 export type LeadingIndicatorTargetPromptResult =
-  | { kind: "value"; value: string }
+  | { kind: "value"; value: number }
+  | { kind: "back" }
+  | { kind: "cancel" };
+
+export type LeadingIndicatorOperatorPromptResult =
+  | { kind: "value"; value: ManualComparisonOperator }
   | { kind: "back" }
   | { kind: "cancel" };
 
@@ -31,7 +37,8 @@ export type NewWizardValues = {
   maxHours?: number;
   maxCalendarDays?: number;
   defaultAction: DefaultAction;
-  leadingIndicatorTarget: string;
+  leadingIndicatorOperator: ManualComparisonOperator;
+  leadingIndicatorTarget: number;
 };
 
 export type NewWizardResult =
@@ -49,22 +56,33 @@ export type WizardPromptClient = {
     allowBack: boolean;
   }): Promise<NumberPromptResult>;
   promptDefaultAction(params: { initialValue?: DefaultAction; allowBack: boolean }): Promise<ActionPromptResult>;
+  promptLeadingIndicatorOperator(params: {
+    initialValue?: ManualComparisonOperator;
+    allowBack: boolean;
+  }): Promise<LeadingIndicatorOperatorPromptResult>;
   promptLeadingIndicatorTarget(params: {
-    initialValue?: string;
+    initialValue?: number;
     allowBack: boolean;
   }): Promise<LeadingIndicatorTargetPromptResult>;
 };
 
 type WizardLog = (message: string) => void;
 
-const STEP_ORDER = ["cap_type", "cap_value", "default_action", "leading_indicator_target"] as const;
+const STEP_ORDER = [
+  "cap_type",
+  "cap_value",
+  "default_action",
+  "leading_indicator_operator",
+  "leading_indicator_target",
+] as const;
 type Step = (typeof STEP_ORDER)[number];
 
 type MutableWizardValues = {
   capType?: OptionalNumberField;
   capValue?: number;
   defaultAction?: DefaultAction;
-  leadingIndicatorTarget?: string;
+  leadingIndicatorOperator?: ManualComparisonOperator;
+  leadingIndicatorTarget?: number;
 };
 
 function formatChosenValues(values: MutableWizardValues): string[] {
@@ -82,7 +100,11 @@ function formatChosenValues(values: MutableWizardValues): string[] {
     lines.push(`- default_action: ${values.defaultAction}`);
   }
 
-  if (values.leadingIndicatorTarget) {
+  if (values.leadingIndicatorOperator) {
+    lines.push(`- leading_indicator.operator: ${values.leadingIndicatorOperator}`);
+  }
+
+  if (typeof values.leadingIndicatorTarget === "number") {
     lines.push(`- leading_indicator.target: ${values.leadingIndicatorTarget}`);
   }
 
@@ -174,6 +196,26 @@ export async function runNewWizard(
       continue;
     }
 
+    if (step === "leading_indicator_operator") {
+      const result = await client.promptLeadingIndicatorOperator({
+        initialValue: values.leadingIndicatorOperator,
+        allowBack: stepIndex > 0,
+      });
+
+      if (result.kind === "cancel") {
+        return { cancelled: true };
+      }
+
+      if (result.kind === "back") {
+        stepIndex = Math.max(0, stepIndex - 1);
+        continue;
+      }
+
+      values.leadingIndicatorOperator = result.value;
+      stepIndex += 1;
+      continue;
+    }
+
     const result = await client.promptLeadingIndicatorTarget({
       initialValue: values.leadingIndicatorTarget,
       allowBack: stepIndex > 0,
@@ -196,7 +238,8 @@ export async function runNewWizard(
     !values.defaultAction ||
     !values.capType ||
     typeof values.capValue !== "number" ||
-    !values.leadingIndicatorTarget
+    !values.leadingIndicatorOperator ||
+    typeof values.leadingIndicatorTarget !== "number"
   ) {
     return { cancelled: true };
   }
@@ -210,6 +253,7 @@ export async function runNewWizard(
       maxHours,
       maxCalendarDays,
       defaultAction: values.defaultAction,
+      leadingIndicatorOperator: values.leadingIndicatorOperator,
       leadingIndicatorTarget: values.leadingIndicatorTarget,
     },
   };
@@ -309,20 +353,50 @@ export function createClackPromptClient(): WizardPromptClient {
       return { kind: "value", value };
     },
 
+    async promptLeadingIndicatorOperator({ initialValue, allowBack }) {
+      const options: Array<{ label: string; value: ManualComparisonOperator | typeof BACK_VALUE }> = [
+        { label: "lt (less than)", value: "lt" },
+        { label: "lte (less than or equal)", value: "lte" },
+        { label: "eq (equal)", value: "eq" },
+        { label: "gte (greater than or equal)", value: "gte" },
+        { label: "gt (greater than)", value: "gt" },
+      ];
+
+      if (allowBack) {
+        options.unshift({ label: "Back", value: BACK_VALUE });
+      }
+
+      const value = await select({
+        message: "Leading indicator comparison operator",
+        options,
+        initialValue,
+      });
+
+      if (isCancel(value)) {
+        return { kind: "cancel" };
+      }
+
+      if (value === BACK_VALUE) {
+        return { kind: "back" };
+      }
+
+      return { kind: "value", value };
+    },
+
     async promptLeadingIndicatorTarget({ initialValue, allowBack }) {
       const backHint = allowBack ? ` ${DIM}(type b to go back)${RESET}` : "";
 
       const value = await text({
-        message: `Leading indicator target (required).${backHint}`,
-        initialValue,
+        message: `Leading indicator numeric target (required).${backHint}`,
+        initialValue: typeof initialValue === "number" ? String(initialValue) : undefined,
         validate(rawValue) {
           const trimmed = rawValue.trim();
           if (allowBack && trimmed.toLowerCase() === "b") {
             return;
           }
 
-          if (trimmed.length === 0) {
-            return "Enter a target value.";
+          if (trimmed.length === 0 || !Number.isFinite(Number(trimmed))) {
+            return "Enter a valid number.";
           }
         },
       });
@@ -336,7 +410,7 @@ export function createClackPromptClient(): WizardPromptClient {
         return { kind: "back" };
       }
 
-      return { kind: "value", value: trimmed };
+      return { kind: "value", value: Number(trimmed) };
     },
   };
 }

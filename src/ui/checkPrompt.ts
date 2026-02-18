@@ -2,7 +2,7 @@ import { isCancel, text } from "@clack/prompts";
 
 export type CheckPromptResult =
   | { cancelled: true }
-  | { cancelled: false; observedValue: string; notes?: string };
+  | { cancelled: false; observedValue: number; notes?: string };
 
 export type CheckPromptClient = {
   promptObservedValue(): Promise<string | symbol>;
@@ -13,10 +13,11 @@ export function createClackCheckPromptClient(): CheckPromptClient {
   return {
     async promptObservedValue() {
       return text({
-        message: "Observed value (required)",
+        message: "Observed value (required, numeric)",
         validate(rawValue) {
-          if (rawValue.trim().length === 0) {
-            return "Enter an observed value.";
+          const trimmed = rawValue.trim();
+          if (trimmed.length === 0 || !Number.isFinite(Number(trimmed))) {
+            return "Enter a valid number.";
           }
         },
       });
@@ -42,8 +43,8 @@ export async function runCheckPrompt(
     return { cancelled: true };
   }
 
-  const observedValue = observed.trim();
-  const trimmedNotes = (notes || '').trim();
+  const observedValue = Number(observed.trim());
+  const trimmedNotes = (notes || "").trim();
 
   return {
     cancelled: false,

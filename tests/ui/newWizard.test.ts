@@ -2,6 +2,7 @@ import {
   type CapTypePromptResult,
   runNewWizard,
   type ActionPromptResult,
+  type LeadingIndicatorOperatorPromptResult,
   type LeadingIndicatorTargetPromptResult,
   type NumberPromptResult,
   type WizardPromptClient,
@@ -11,6 +12,7 @@ type ScriptedStep =
   | { type: "capType"; result: CapTypePromptResult }
   | { type: "capValue"; result: NumberPromptResult }
   | { type: "action"; result: ActionPromptResult }
+  | { type: "leadingIndicatorOperator"; result: LeadingIndicatorOperatorPromptResult }
   | { type: "leadingIndicatorTarget"; result: LeadingIndicatorTargetPromptResult };
 
 function createScriptedClient(steps: ScriptedStep[]): WizardPromptClient {
@@ -43,6 +45,13 @@ function createScriptedClient(steps: ScriptedStep[]): WizardPromptClient {
       }
       return next.result;
     },
+    async promptLeadingIndicatorOperator() {
+      const next = steps.shift();
+      if (!next || next.type !== "leadingIndicatorOperator") {
+        throw new Error("Unexpected leading indicator operator prompt");
+      }
+      return next.result;
+    },
   };
 }
 
@@ -52,7 +61,8 @@ describe("runNewWizard", () => {
       { type: "capType", result: { kind: "value", value: "max_hours" } },
       { type: "capValue", result: { kind: "value", value: 12 } },
       { type: "action", result: { kind: "value", value: "kill" } },
-      { type: "leadingIndicatorTarget", result: { kind: "value", value: ">= 20 signups in 7d" } },
+      { type: "leadingIndicatorOperator", result: { kind: "value", value: "gte" } },
+      { type: "leadingIndicatorTarget", result: { kind: "value", value: 20 } },
     ]);
 
     const result = await runNewWizard(client);
@@ -63,7 +73,8 @@ describe("runNewWizard", () => {
         maxHours: 12,
         maxCalendarDays: undefined,
         defaultAction: "kill",
-        leadingIndicatorTarget: ">= 20 signups in 7d",
+        leadingIndicatorOperator: "gte",
+        leadingIndicatorTarget: 20,
       },
     });
   });
@@ -77,7 +88,8 @@ describe("runNewWizard", () => {
       { type: "capType", result: { kind: "value", value: "max_calendar_days" } },
       { type: "capValue", result: { kind: "value", value: 9 } },
       { type: "action", result: { kind: "value", value: "pivot" } },
-      { type: "leadingIndicatorTarget", result: { kind: "value", value: ">= 10 activations" } },
+      { type: "leadingIndicatorOperator", result: { kind: "value", value: "gt" } },
+      { type: "leadingIndicatorTarget", result: { kind: "value", value: 10 } },
     ]);
 
     const result = await runNewWizard(client, () => undefined);
@@ -88,7 +100,8 @@ describe("runNewWizard", () => {
         maxHours: undefined,
         maxCalendarDays: 9,
         defaultAction: "pivot",
-        leadingIndicatorTarget: ">= 10 activations",
+        leadingIndicatorOperator: "gt",
+        leadingIndicatorTarget: 10,
       },
     });
   });

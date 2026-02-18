@@ -42,6 +42,7 @@ export async function runNew(rootDir: string, id: string): Promise<number> {
     defaultAction: wizardResult.values.defaultAction,
     leadingIndicator: {
       type: "manual",
+      operator: wizardResult.values.leadingIndicatorOperator,
       target: wizardResult.values.leadingIndicatorTarget,
     },
     maxHours: wizardResult.values.maxHours,
