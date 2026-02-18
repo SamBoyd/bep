@@ -29,8 +29,11 @@ describe("runNew", () => {
       values: {
         maxHours: 12,
         defaultAction: "kill",
-        leadingIndicatorOperator: "gte",
-        leadingIndicatorTarget: 20,
+        leadingIndicator: {
+          type: "manual",
+          operator: "gte",
+          target: 20,
+        },
       },
     });
 
@@ -122,8 +125,11 @@ describe("runNew", () => {
       cancelled: false,
       values: {
         defaultAction: "extend",
-        leadingIndicatorOperator: "lte",
-        leadingIndicatorTarget: 5,
+        leadingIndicator: {
+          type: "manual",
+          operator: "lte",
+          target: 5,
+        },
       },
     });
 

@@ -1,5 +1,7 @@
 import { isCancel, select, text } from "@clack/prompts";
-import type { ManualComparisonOperator } from "../bep/checkInput";
+import { listRegisteredProviderTypes, resolveProviderModule } from "../providers/registry";
+import type { ManualSetupPromptClient, ManualOperatorPromptResult, ManualTargetPromptResult } from "../providers/manual";
+import type { LeadingIndicator, LeadingIndicatorType, ManualComparisonOperator } from "../providers/types";
 import type { DefaultAction } from "../bep/template";
 
 const BACK_VALUE = "__back__";
@@ -23,13 +25,8 @@ export type ActionPromptResult =
   | { kind: "back" }
   | { kind: "cancel" };
 
-export type LeadingIndicatorTargetPromptResult =
-  | { kind: "value"; value: number }
-  | { kind: "back" }
-  | { kind: "cancel" };
-
-export type LeadingIndicatorOperatorPromptResult =
-  | { kind: "value"; value: ManualComparisonOperator }
+export type LeadingIndicatorTypePromptResult =
+  | { kind: "value"; value: LeadingIndicatorType }
   | { kind: "back" }
   | { kind: "cancel" };
 
@@ -37,15 +34,12 @@ export type NewWizardValues = {
   maxHours?: number;
   maxCalendarDays?: number;
   defaultAction: DefaultAction;
-  leadingIndicatorOperator: ManualComparisonOperator;
-  leadingIndicatorTarget: number;
+  leadingIndicator: LeadingIndicator;
 };
 
-export type NewWizardResult =
-  | { cancelled: true }
-  | { cancelled: false; values: NewWizardValues };
+export type NewWizardResult = { cancelled: true } | { cancelled: false; values: NewWizardValues };
 
-export type WizardPromptClient = {
+export type WizardPromptClient = ManualSetupPromptClient & {
   promptCapType(params: {
     initialValue?: OptionalNumberField;
     allowBack: boolean;
@@ -56,60 +50,24 @@ export type WizardPromptClient = {
     allowBack: boolean;
   }): Promise<NumberPromptResult>;
   promptDefaultAction(params: { initialValue?: DefaultAction; allowBack: boolean }): Promise<ActionPromptResult>;
-  promptLeadingIndicatorOperator(params: {
-    initialValue?: ManualComparisonOperator;
+  promptLeadingIndicatorType(params: {
+    initialValue?: LeadingIndicatorType;
     allowBack: boolean;
-  }): Promise<LeadingIndicatorOperatorPromptResult>;
-  promptLeadingIndicatorTarget(params: {
-    initialValue?: number;
-    allowBack: boolean;
-  }): Promise<LeadingIndicatorTargetPromptResult>;
+  }): Promise<LeadingIndicatorTypePromptResult>;
 };
 
 type WizardLog = (message: string) => void;
 
-const STEP_ORDER = [
-  "cap_type",
-  "cap_value",
-  "default_action",
-  "leading_indicator_operator",
-  "leading_indicator_target",
-] as const;
+const STEP_ORDER = ["cap_type", "cap_value", "default_action", "leading_indicator_type", "leading_indicator_setup"] as const;
 type Step = (typeof STEP_ORDER)[number];
 
 type MutableWizardValues = {
   capType?: OptionalNumberField;
   capValue?: number;
   defaultAction?: DefaultAction;
-  leadingIndicatorOperator?: ManualComparisonOperator;
-  leadingIndicatorTarget?: number;
+  leadingIndicatorType?: LeadingIndicatorType;
+  leadingIndicator?: LeadingIndicator;
 };
-
-function formatChosenValues(values: MutableWizardValues): string[] {
-  const lines: string[] = [];
-
-  if (values.capType) {
-    lines.push(`- cap_type: ${values.capType}`);
-  }
-
-  if (typeof values.capValue === "number" && values.capType) {
-    lines.push(`- ${values.capType}: ${values.capValue}`);
-  }
-
-  if (values.defaultAction) {
-    lines.push(`- default_action: ${values.defaultAction}`);
-  }
-
-  if (values.leadingIndicatorOperator) {
-    lines.push(`- leading_indicator.operator: ${values.leadingIndicatorOperator}`);
-  }
-
-  if (typeof values.leadingIndicatorTarget === "number") {
-    lines.push(`- leading_indicator.target: ${values.leadingIndicatorTarget}`);
-  }
-
-  return lines;
-}
 
 export async function runNewWizard(
   client: WizardPromptClient = createClackPromptClient(),
@@ -117,14 +75,8 @@ export async function runNewWizard(
 ): Promise<NewWizardResult> {
   let stepIndex = 0;
   const values: MutableWizardValues = {};
-  let hasPrompted = false;
-
+  
   while (stepIndex < STEP_ORDER.length) {
-    if (hasPrompted) {
-      log("");
-    }
-    hasPrompted = true;
-
     const step: Step = STEP_ORDER[stepIndex];
 
     if (step === "cap_type") {
@@ -196,9 +148,9 @@ export async function runNewWizard(
       continue;
     }
 
-    if (step === "leading_indicator_operator") {
-      const result = await client.promptLeadingIndicatorOperator({
-        initialValue: values.leadingIndicatorOperator,
+    if (step === "leading_indicator_type") {
+      const result = await client.promptLeadingIndicatorType({
+        initialValue: values.leadingIndicatorType,
         allowBack: stepIndex > 0,
       });
 
@@ -211,36 +163,46 @@ export async function runNewWizard(
         continue;
       }
 
-      values.leadingIndicatorOperator = result.value;
+      if (values.leadingIndicatorType !== result.value) {
+        values.leadingIndicator = undefined;
+      }
+      values.leadingIndicatorType = result.value;
       stepIndex += 1;
       continue;
     }
 
-    const result = await client.promptLeadingIndicatorTarget({
-      initialValue: values.leadingIndicatorTarget,
-      allowBack: stepIndex > 0,
-    });
-
-    if (result.kind === "cancel") {
+    if (!values.leadingIndicatorType) {
       return { cancelled: true };
     }
 
-    if (result.kind === "back") {
+    const module = resolveProviderModule(values.leadingIndicatorType);
+    if (!module || !module.setup) {
+      return { cancelled: true };
+    }
+
+    const setupResult = await module.setup.collectNewWizardInput({
+      allowBack: stepIndex > 0,
+      initialValue:
+        values.leadingIndicator && values.leadingIndicator.type === values.leadingIndicatorType
+          ? values.leadingIndicator
+          : undefined,
+      client,
+    });
+
+    if (setupResult.kind === "cancel") {
+      return { cancelled: true };
+    }
+
+    if (setupResult.kind === "back") {
       stepIndex = Math.max(0, stepIndex - 1);
       continue;
     }
 
-    values.leadingIndicatorTarget = result.value;
+    values.leadingIndicator = setupResult.value;
     stepIndex += 1;
   }
 
-  if (
-    !values.defaultAction ||
-    !values.capType ||
-    typeof values.capValue !== "number" ||
-    !values.leadingIndicatorOperator ||
-    typeof values.leadingIndicatorTarget !== "number"
-  ) {
+  if (!values.defaultAction || !values.capType || typeof values.capValue !== "number" || !values.leadingIndicator) {
     return { cancelled: true };
   }
 
@@ -253,8 +215,7 @@ export async function runNewWizard(
       maxHours,
       maxCalendarDays,
       defaultAction: values.defaultAction,
-      leadingIndicatorOperator: values.leadingIndicatorOperator,
-      leadingIndicatorTarget: values.leadingIndicatorTarget,
+      leadingIndicator: values.leadingIndicator,
     },
   };
 }
@@ -353,7 +314,32 @@ export function createClackPromptClient(): WizardPromptClient {
       return { kind: "value", value };
     },
 
-    async promptLeadingIndicatorOperator({ initialValue, allowBack }) {
+    async promptLeadingIndicatorType({ initialValue, allowBack }) {
+      const options: Array<{ label: string; value: LeadingIndicatorType | typeof BACK_VALUE }> = listRegisteredProviderTypes()
+        .map((type) => ({ label: type, value: type as LeadingIndicatorType }));
+
+      if (allowBack) {
+        options.unshift({ label: "Back", value: BACK_VALUE });
+      }
+
+      const value = await select({
+        message: "Leading indicator provider type",
+        options,
+        initialValue,
+      });
+
+      if (isCancel(value)) {
+        return { kind: "cancel" };
+      }
+
+      if (value === BACK_VALUE) {
+        return { kind: "back" };
+      }
+
+      return { kind: "value", value };
+    },
+
+    async promptManualOperator({ initialValue, allowBack }): Promise<ManualOperatorPromptResult> {
       const options: Array<{ label: string; value: ManualComparisonOperator | typeof BACK_VALUE }> = [
         { label: "lt (less than)", value: "lt" },
         { label: "lte (less than or equal)", value: "lte" },
@@ -383,9 +369,8 @@ export function createClackPromptClient(): WizardPromptClient {
       return { kind: "value", value };
     },
 
-    async promptLeadingIndicatorTarget({ initialValue, allowBack }) {
+    async promptManualTarget({ initialValue, allowBack }): Promise<ManualTargetPromptResult> {
       const backHint = allowBack ? ` ${DIM}(type b to go back)${RESET}` : "";
-
       const value = await text({
         message: `Leading indicator numeric target (required).${backHint}`,
         initialValue: typeof initialValue === "number" ? String(initialValue) : undefined,

@@ -1,5 +1,5 @@
 import matter from "gray-matter";
-import type { ManualLeadingIndicator } from "./checkInput";
+import type { LeadingIndicator } from "../providers/types";
 
 export type DefaultAction = "kill" | "narrow" | "pivot" | "extend";
 
@@ -7,7 +7,7 @@ export type NewBetTemplateInput = {
   id: string;
   createdAt: string;
   defaultAction: DefaultAction;
-  leadingIndicator: ManualLeadingIndicator;
+  leadingIndicator: LeadingIndicator;
   maxHours?: number;
   maxCalendarDays?: number;
 };

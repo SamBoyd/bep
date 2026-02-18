@@ -69,6 +69,7 @@ Update this map whenever directories, entrypoints, or core config locations chan
 │   ├── cli.ts             # CLI entrypoint and command registration
 │   ├── commands/          # CLI command handlers (e.g., init)
 │   ├── bep/               # BEP domain helpers (ids, templates, parsing)
+│   ├── providers/         # Validation provider interfaces, registry, and adapters
 │   ├── fs/                # Filesystem/domain helpers (repo layout/state setup)
 │   ├── state/             # State read/write/validation helpers
 │   └── ui/                # Interactive prompt flows/wizard helpers
@@ -76,6 +77,7 @@ Update this map whenever directories, entrypoints, or core config locations chan
     ├── commands/          # Command-level behavior tests
     ├── fs/                # Filesystem helper tests
     ├── bep/               # BEP domain helper tests
+    ├── providers/         # Provider adapter and setup tests
     ├── state/             # State module tests
     └── ui/                # Wizard flow tests
 ```

@@ -73,7 +73,7 @@ describe("runCheck", () => {
 
       expect(exitCode).toBe(1);
       expect(errorSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Bet 'landing-page' has invalid leading_indicator:"),
+        expect.stringContaining("invalid leading_indicator"),
       );
       expect(mockedRunCheckPrompt).not.toHaveBeenCalled();
       await expect(access(path.join(tempDir, EVIDENCE_DIR, "landing-page.json"))).rejects.toThrow();
@@ -151,6 +151,31 @@ describe("runCheck", () => {
       expect(exitCode).toBe(1);
       expect(errorSpy).toHaveBeenCalledWith("Cancelled. No evidence was written.");
       await expect(access(path.join(tempDir, EVIDENCE_DIR, "landing-page.json"))).rejects.toThrow();
+    } finally {
+      errorSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("fails when leading_indicator.type is unsupported", async () => {
+    const tempDir = await createTempDir();
+    const errorSpy = jest.spyOn(console, "error").mockImplementation();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nleading_indicator:\n  type: posthog\n  target: 20\n---\n",
+        "utf8",
+      );
+
+      const exitCode = await runCheck(tempDir, "landing-page");
+
+      expect(exitCode).toBe(1);
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Bet has unsupported leading_indicator.type 'posthog'. Supported types: manual.",
+      );
+      expect(mockedRunCheckPrompt).not.toHaveBeenCalled();
     } finally {
       errorSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });

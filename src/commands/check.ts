@@ -2,26 +2,20 @@ import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
 import { isValidBetId } from "../bep/id";
-import {
-  evaluateManualComparison,
-  formatManualComparisonOperator,
-  parseManualLeadingIndicator,
-} from "../bep/checkInput";
 import { BETS_DIR, EVIDENCE_DIR, initRepo } from "../fs/init";
-import { runCheckPrompt } from "../ui/checkPrompt";
+import { listRegisteredProviderTypes, resolveProviderModule } from "../providers/registry";
+import { formatManualComparisonOperator } from "../providers/manual";
+import type { LeadingIndicator } from "../providers/types";
 
-type ManualEvidenceSnapshot = {
+type EvidenceSnapshot = {
   id: string;
   checked_at: string;
-  mode: "manual";
-  leading_indicator: {
-    type: "manual";
-    operator: "lt" | "lte" | "eq" | "gte" | "gt";
-    target: number;
-  };
+  mode: string;
+  leading_indicator: LeadingIndicator;
   observed_value: number;
   meets_target: boolean;
   notes?: string;
+  meta?: Record<string, unknown>;
 };
 
 async function pathExists(filePath: string): Promise<boolean> {
@@ -31,6 +25,23 @@ async function pathExists(filePath: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+function getLeadingIndicatorType(value: unknown): string | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const type = (value as { type?: unknown }).type;
+  return typeof type === "string" && type.length > 0 ? type : null;
+}
+
+function formatComparisonLabel(indicator: LeadingIndicator, observedValue: number): string {
+  if (indicator.type === "manual") {
+    return `${observedValue} ${formatManualComparisonOperator(indicator.operator)} ${indicator.target}`;
+  }
+
+  return String(observedValue);
 }
 
 export async function runCheck(rootDir: string, id: string): Promise<number> {
@@ -58,37 +69,48 @@ export async function runCheck(rootDir: string, id: string): Promise<number> {
     return 1;
   }
 
-  const leadingIndicatorResult = parseManualLeadingIndicator(
-    (parsed.data as { leading_indicator?: unknown }).leading_indicator,
-  );
+  const rawLeadingIndicator = (parsed.data as { leading_indicator?: unknown }).leading_indicator;
+  const leadingIndicatorType = getLeadingIndicatorType(rawLeadingIndicator);
+  if (!leadingIndicatorType) {
+    console.error("Bet has invalid leading_indicator: missing string field 'type'.");
+    return 1;
+  }
 
-  if (!leadingIndicatorResult.ok) {
+  const module = resolveProviderModule(leadingIndicatorType);
+  if (!module) {
+    const knownTypes = listRegisteredProviderTypes().join(", ");
     console.error(
-      `Bet '${id}' has invalid leading_indicator: ${leadingIndicatorResult.error} Expected { type: "manual", operator: "lt|lte|eq|gte|gt", target: <number> }.`,
+      `Bet has unsupported leading_indicator.type '${leadingIndicatorType}'. Supported types: ${knownTypes}.`,
     );
     return 1;
   }
 
-  const promptResult = await runCheckPrompt();
-  if (promptResult.cancelled) {
+  const parsedIndicator = module.adapter.parseIndicator(rawLeadingIndicator);
+  if (!parsedIndicator.ok) {
+    console.error(`Bet '${id}' has invalid leading_indicator: ${parsedIndicator.error}`);
+    return 1;
+  }
+
+  const checkResult = await module.adapter.runCheck(parsedIndicator.value, {
+    rootDir,
+    betId: id,
+    nowIso: new Date().toISOString(),
+  });
+
+  if ("cancelled" in checkResult) {
     console.error("Cancelled. No evidence was written.");
     return 1;
   }
 
-  const meetsTarget = evaluateManualComparison(
-    promptResult.observedValue,
-    leadingIndicatorResult.value.operator,
-    leadingIndicatorResult.value.target,
-  );
-
-  const snapshot: ManualEvidenceSnapshot = {
+  const snapshot: EvidenceSnapshot = {
     id,
     checked_at: new Date().toISOString(),
-    mode: "manual",
-    leading_indicator: leadingIndicatorResult.value,
-    observed_value: promptResult.observedValue,
-    meets_target: meetsTarget,
-    notes: promptResult.notes,
+    mode: parsedIndicator.value.type,
+    leading_indicator: parsedIndicator.value,
+    observed_value: checkResult.observedValue,
+    meets_target: checkResult.meetsTarget,
+    notes: checkResult.notes,
+    meta: checkResult.meta,
   };
 
   const relativeEvidencePath = path.join(EVIDENCE_DIR, `${id}.json`);
@@ -101,9 +123,9 @@ export async function runCheck(rootDir: string, id: string): Promise<number> {
     return 1;
   }
 
-  const comparisonLabel = `${promptResult.observedValue} ${formatManualComparisonOperator(leadingIndicatorResult.value.operator)} ${leadingIndicatorResult.value.target}`;
+  const comparisonLabel = formatComparisonLabel(parsedIndicator.value, checkResult.observedValue);
   console.log(
-    `Captured manual evidence for '${id}' at ${relativeEvidencePath}. Result: ${meetsTarget ? "PASS" : "FAIL"} (${comparisonLabel}).`,
+    `Captured ${parsedIndicator.value.type} evidence for '${id}' at ${relativeEvidencePath}. Result: ${checkResult.meetsTarget ? "PASS" : "FAIL"} (${comparisonLabel}).`,
   );
   return 0;
 }

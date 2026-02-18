@@ -162,6 +162,7 @@ Runs an interactive wizard to collect:
 - one cap type: `max_hours` or `max_calendar_days`
 - a required numeric value for the chosen cap type
 - `default_action` (`kill` / `narrow` / `pivot` / `extend`)
+- `leading_indicator.type` (currently `manual`)
 - `leading_indicator.operator` (one of `lt`, `lte`, `eq`, `gte`, `gt`)
 - `leading_indicator.target` (required numeric threshold)
 
@@ -205,6 +206,7 @@ Runs an interactive manual check:
 - writes a snapshot to `bets/_evidence/<id>.json` including the comparison result
 
 This v0 flow captures evidence and evaluates pass/fail for manual numeric checks.
+Validation is dispatched through a provider registry. Unknown `leading_indicator.type` values fail fast with an invalid-config error.
 
 ### Summarize current bets
 ```bash
@@ -224,6 +226,13 @@ Shows:
 6. **Review history**: learn from killed bets and recalibrate.
 
 ## Integrations (planned)
+Validation providers are modular:
+- each provider owns config parsing + check execution
+- providers can optionally own setup prompts used by `bep new`
+
+Current registered provider:
+- `manual`
+
 Validation sources under consideration (to be added incrementally as usage feedback arrives):
 - PostHog, Mixpanel, Amplitude
 - read-only SQL queries
