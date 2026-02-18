@@ -70,3 +70,17 @@ export function addActiveSession(
     },
   };
 }
+
+export function removeActiveSessions(state: BepState, id: string): { state: BepState; removed: ActiveSession[] } {
+  const removed = state.active.filter((session) => session.id === id);
+  if (removed.length === 0) {
+    return { state, removed };
+  }
+
+  return {
+    removed,
+    state: {
+      active: state.active.filter((session) => session.id !== id),
+    },
+  };
+}

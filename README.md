@@ -90,8 +90,8 @@ bets/
   _state.json
 
   _logs/
-    landing-page.time.log
-    onboarding-v2.time.log
+    landing-page.jsonl
+    onboarding-v2.jsonl
 
   _evidence/
     landing-page.json
@@ -187,9 +187,12 @@ Starts a work session for an existing BEP:
 
 ### Stop a bet session (and log exposure)
 ```bash
-bep stop
+bep stop landing-page
 ```
-Appends time/session exposure to `bets/_logs/<id>.time.log`.
+Stops all active sessions for that bet id, appends one JSON line per stopped session to `bets/_logs/<id>.jsonl`, and updates `status: paused` in `bets/<id>.md` when the markdown file exists.
+
+If the id is not active, the command exits successfully with a no-op message.
+Each JSONL entry has: `id`, `started_at`, `stopped_at`, `duration_seconds`.
 
 ### Check validation status
 ```bash

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { STATE_PATH } from "../../src/fs/init";
 import { initRepo } from "../../src/fs/init";
-import { addActiveSession, readState, writeState } from "../../src/state/state";
+import { addActiveSession, readState, removeActiveSessions, writeState } from "../../src/state/state";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-state-test-"));
@@ -63,5 +63,19 @@ describe("state module", () => {
     expect(added.alreadyActive).toBe(false);
     expect(added.state.active).toHaveLength(2);
     expect(added.state.active[1]).toEqual({ id: "pricing-page", started_at: "2026-02-18T01:00:00.000Z" });
+  });
+
+  test("removes all active sessions for an id", () => {
+    const initial = {
+      active: [
+        { id: "landing-page", started_at: "2026-02-18T00:00:00.000Z" },
+        { id: "landing-page", started_at: "2026-02-18T01:00:00.000Z" },
+        { id: "pricing-page", started_at: "2026-02-18T02:00:00.000Z" },
+      ],
+    };
+
+    const removed = removeActiveSessions(initial, "landing-page");
+    expect(removed.removed).toHaveLength(2);
+    expect(removed.state.active).toEqual([{ id: "pricing-page", started_at: "2026-02-18T02:00:00.000Z" }]);
   });
 });

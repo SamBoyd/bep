@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { runInit } from "./commands/init";
 import { runNew } from "./commands/new";
 import { runStart } from "./commands/start";
+import { runStop } from "./commands/stop";
 
 export async function main(argv: string[]): Promise<void> {
   const program = new Command();
@@ -29,6 +30,14 @@ export async function main(argv: string[]): Promise<void> {
     .description("Start work on an existing BEP")
     .action(async (id: string) => {
       const exitCode = await runStart(process.cwd(), id);
+      process.exitCode = exitCode;
+    });
+
+  program
+    .command("stop <id>")
+    .description("Stop work on an active BEP and log session exposure")
+    .action(async (id: string) => {
+      const exitCode = await runStop(process.cwd(), id);
       process.exitCode = exitCode;
     });
 
