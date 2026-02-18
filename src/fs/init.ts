@@ -12,7 +12,7 @@ export type InitResult = {
 };
 
 const DEFAULT_STATE = {
-  active: null,
+  active: [],
 };
 
 async function pathExists(filePath: string): Promise<boolean> {

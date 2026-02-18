@@ -87,12 +87,23 @@ bets/
   onboarding-v2.md
   payment-flow.md
 
+  _state.json
+
   _logs/
     landing-page.time.log
     onboarding-v2.time.log
 
   _evidence/
     landing-page.json
+```
+
+`_state.json` stores active sessions:
+```json
+{
+  "active": [
+    { "id": "landing-page", "started_at": "2026-02-18T21:15:00.000Z" }
+  ]
+}
 ```
 
 ## CLI (proposed public API)
@@ -165,7 +176,14 @@ Creates `bets/landing-page.md` from a template.
 ```bash
 bep start landing-page
 ```
-Marks the active BEP for the current work session (exact mechanism TBD: explicit command, editor integration, or assistant hook).
+Starts a work session for an existing BEP:
+- validates `id` as a lowercase slug
+- requires `bets/<id>.md` to already exist
+- adds `{ id, started_at }` to `bets/_state.json` under `active`
+- avoids duplicates (if already active, it exits successfully without changing `started_at`)
+- sets `status: active` in `bets/<id>.md` frontmatter
+
+`bep start <id>` supports multiple active bets at the same time.
 
 ### Stop a bet session (and log exposure)
 ```bash

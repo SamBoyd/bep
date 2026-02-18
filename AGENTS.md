@@ -70,10 +70,12 @@ Update this map whenever directories, entrypoints, or core config locations chan
 │   ├── commands/          # CLI command handlers (e.g., init)
 │   ├── bep/               # BEP domain helpers (ids, templates, parsing)
 │   ├── fs/                # Filesystem/domain helpers (repo layout/state setup)
+│   ├── state/             # State read/write/validation helpers
 │   └── ui/                # Interactive prompt flows/wizard helpers
 └── tests/                 # Jest test suites for units/commands
     ├── commands/          # Command-level behavior tests
     ├── fs/                # Filesystem helper tests
     ├── bep/               # BEP domain helper tests
+    ├── state/             # State module tests
     └── ui/                # Wizard flow tests
 ```

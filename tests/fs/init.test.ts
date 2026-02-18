@@ -18,7 +18,7 @@ describe("initRepo", () => {
       expect(result.createdPaths).toEqual(expect.arrayContaining([BETS_DIR, LOGS_DIR, EVIDENCE_DIR, STATE_PATH]));
 
       const stateFile = await readFile(path.join(tempDir, STATE_PATH), "utf8");
-      expect(JSON.parse(stateFile)).toEqual({ active: null });
+      expect(JSON.parse(stateFile)).toEqual({ active: [] });
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }

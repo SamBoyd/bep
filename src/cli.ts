@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { runInit } from "./commands/init";
 import { runNew } from "./commands/new";
+import { runStart } from "./commands/start";
 
 export async function main(argv: string[]): Promise<void> {
   const program = new Command();
@@ -20,6 +21,14 @@ export async function main(argv: string[]): Promise<void> {
     .description("Create a new BEP markdown file")
     .action(async (id: string) => {
       const exitCode = await runNew(process.cwd(), id);
+      process.exitCode = exitCode;
+    });
+
+  program
+    .command("start <id>")
+    .description("Start work on an existing BEP")
+    .action(async (id: string) => {
+      const exitCode = await runStart(process.cwd(), id);
       process.exitCode = exitCode;
     });
 

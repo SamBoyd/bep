@@ -124,7 +124,7 @@ describe("runNew", () => {
       const exitCode = await runNew(tempDir, "onboarding-v2");
 
       expect(exitCode).toBe(0);
-      await expect(readFile(path.join(tempDir, STATE_PATH), "utf8")).resolves.toContain('"active": null');
+      await expect(readFile(path.join(tempDir, STATE_PATH), "utf8")).resolves.toContain('"active": []');
       await expect(readFile(path.join(tempDir, BETS_DIR, "onboarding-v2.md"), "utf8")).resolves.toContain(
         "default_action: extend",
       );
