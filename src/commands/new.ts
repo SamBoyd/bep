@@ -40,6 +40,10 @@ export async function runNew(rootDir: string, id: string): Promise<number> {
     id,
     createdAt: new Date().toISOString(),
     defaultAction: wizardResult.values.defaultAction,
+    leadingIndicator: {
+      type: "manual",
+      target: wizardResult.values.leadingIndicatorTarget,
+    },
     maxHours: wizardResult.values.maxHours,
     maxCalendarDays: wizardResult.values.maxCalendarDays,
   });

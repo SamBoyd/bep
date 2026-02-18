@@ -7,6 +7,10 @@ describe("renderNewBetMarkdown", () => {
       id: "landing-page",
       createdAt: "2026-02-18T00:00:00.000Z",
       defaultAction: "kill",
+      leadingIndicator: {
+        type: "manual",
+        target: ">= 20 signups in 7d",
+      },
     });
 
     const parsed = matter(markdown);
@@ -15,6 +19,10 @@ describe("renderNewBetMarkdown", () => {
       status: "active",
       default_action: "kill",
       created_at: "2026-02-18T00:00:00.000Z",
+      leading_indicator: {
+        type: "manual",
+        target: ">= 20 signups in 7d",
+      },
     });
     expect(parsed.content).toContain("# Budgeted Engineering Proposal");
   });
@@ -24,12 +32,16 @@ describe("renderNewBetMarkdown", () => {
       id: "onboarding-v2",
       createdAt: "2026-02-18T00:00:00.000Z",
       defaultAction: "pivot",
+      leadingIndicator: {
+        type: "manual",
+        target: ">= 10 activations",
+      },
     });
 
     const parsed = matter(markdown);
     expect(parsed.data).not.toHaveProperty("max_hours");
     expect(parsed.data).not.toHaveProperty("max_calendar_days");
-    expect(parsed.data).not.toHaveProperty("leading_indicator");
+    expect(parsed.data).toHaveProperty("leading_indicator");
   });
 
   test("includes optional cap fields when provided", () => {
@@ -37,6 +49,10 @@ describe("renderNewBetMarkdown", () => {
       id: "onboarding-v2",
       createdAt: "2026-02-18T00:00:00.000Z",
       defaultAction: "extend",
+      leadingIndicator: {
+        type: "manual",
+        target: ">= 50 demos booked",
+      },
       maxHours: 12,
       maxCalendarDays: 10,
     });

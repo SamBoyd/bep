@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { runInit } from "./commands/init";
+import { runCheck } from "./commands/check";
 import { runNew } from "./commands/new";
 import { runStart } from "./commands/start";
 import { runStop } from "./commands/stop";
@@ -38,6 +39,14 @@ export async function main(argv: string[]): Promise<void> {
     .description("Stop work on an active BEP and log session exposure")
     .action(async (id: string) => {
       const exitCode = await runStop(process.cwd(), id);
+      process.exitCode = exitCode;
+    });
+
+  program
+    .command("check <id>")
+    .description("Capture manual validation evidence for a BEP")
+    .action(async (id: string) => {
+      const exitCode = await runCheck(process.cwd(), id);
       process.exitCode = exitCode;
     });
 

@@ -29,6 +29,7 @@ describe("runNew", () => {
       values: {
         maxHours: 12,
         defaultAction: "kill",
+        leadingIndicatorTarget: ">= 20 signups in 7d",
       },
     });
 
@@ -41,6 +42,8 @@ describe("runNew", () => {
       expect(content).toContain("id: landing-page");
       expect(content).toContain("default_action: kill");
       expect(content).toContain("max_hours: 12");
+      expect(content).toContain("leading_indicator:");
+      expect(content).toContain("target: '>= 20 signups in 7d'");
       expect(content).not.toContain("max_calendar_days:");
       expect(logSpy).toHaveBeenCalledWith("\nCreated bets/landing-page.md.");
     } finally {
@@ -117,6 +120,7 @@ describe("runNew", () => {
       cancelled: false,
       values: {
         defaultAction: "extend",
+        leadingIndicatorTarget: ">= 5 paid conversions",
       },
     });
 

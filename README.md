@@ -43,10 +43,8 @@ max_hours: 12
 max_calendar_days: 10
 
 leading_indicator:
-  type: posthog
-  query: "event='signup' AND source='landing_v2'"
-  target: ">= 20"
-  window: "7d"eee
+  type: manual
+  target: ">= 20 signups in 7d"
 
 default_action: kill
 ---
@@ -163,12 +161,12 @@ Runs an interactive wizard to collect:
 - one cap type: `max_hours` or `max_calendar_days`
 - a required numeric value for the chosen cap type
 - `default_action` (`kill` / `narrow` / `pivot` / `extend`)
+- `leading_indicator.target` (required freeform string)
 
 Behavior:
 - `id` must be unique: if `bets/<id>.md` already exists, the command fails.
 - You can move back one step in the wizard to revise the previous answer.
 - Chosen values are shown above each next question.
-- `leading_indicator` is intentionally deferred until validation mechanics are defined.
 
 Creates `bets/landing-page.md` from a template.
 
@@ -198,7 +196,12 @@ Each JSONL entry has: `id`, `started_at`, `stopped_at`, `duration_seconds`.
 ```bash
 bep check landing-page
 ```
-Pulls current metric value from the configured source, compares to the declared target, and writes a snapshot to `bets/_evidence/<id>.json`.
+Runs an interactive manual check:
+- prompts for an observed value (required)
+- prompts for notes (optional)
+- writes a snapshot to `bets/_evidence/<id>.json`
+
+This v0 flow captures evidence only; it does not auto-evaluate pass/fail yet.
 
 ### Summarize current bets
 ```bash
@@ -218,7 +221,7 @@ Shows:
 6. **Review history**: learn from killed bets and recalibrate.
 
 ## Integrations (planned)
-Validation sources under consideration:
+Validation sources under consideration (to be added incrementally as usage feedback arrives):
 - PostHog, Mixpanel, Amplitude
 - read-only SQL queries
 - Prometheus/Grafana metrics
@@ -231,7 +234,7 @@ The system should surface evidence and compare to the declared threshold; it sho
 - Define the v0 BEP file schema (frontmatter fields + required sections)
 - Implement `bep init/new/status` with zero external dependencies
 - Implement exposure logging (sessions first; hours derived)
-- Implement `bep check` with one metrics provider (likely PostHog) + local JSON evidence snapshots
+- Implement manual `bep check` evidence capture and evolve provider integrations iteratively
 - Add optional “hard threshold” prompting behavior
 
 ## Contributing
