@@ -42,7 +42,7 @@ describe("runNew", () => {
       expect(content).toContain("default_action: kill");
       expect(content).toContain("max_hours: 12");
       expect(content).not.toContain("max_calendar_days:");
-      expect(logSpy).toHaveBeenCalledWith("Created bets/landing-page.md.");
+      expect(logSpy).toHaveBeenCalledWith("\nCreated bets/landing-page.md.");
     } finally {
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });

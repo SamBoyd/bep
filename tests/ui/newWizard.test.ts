@@ -45,8 +45,7 @@ describe("runNewWizard", () => {
       { type: "action", result: { kind: "value", value: "kill" } },
     ]);
 
-    const logs: string[] = [];
-    const result = await runNewWizard(client, (message) => logs.push(message));
+    const result = await runNewWizard(client);
 
     expect(result).toEqual({
       cancelled: false,
@@ -56,9 +55,6 @@ describe("runNewWizard", () => {
         defaultAction: "kill",
       },
     });
-    expect(logs).toContain("Chosen values:");
-    expect(logs).toContain("- cap_type: max_hours");
-    expect(logs).toContain("- max_hours: 12");
   });
 
   test("supports one-step back navigation and allows changing cap type", async () => {

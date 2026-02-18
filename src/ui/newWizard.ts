@@ -74,27 +74,19 @@ function formatChosenValues(values: MutableWizardValues): string[] {
   return lines;
 }
 
-function logChosenValues(values: MutableWizardValues, log: WizardLog): void {
-  const lines = formatChosenValues(values);
-  if (lines.length === 0) {
-    return;
-  }
-
-  log("Chosen values:");
-  for (const line of lines) {
-    log(line);
-  }
-}
-
 export async function runNewWizard(
   client: WizardPromptClient = createClackPromptClient(),
   log: WizardLog = console.log,
 ): Promise<NewWizardResult> {
   let stepIndex = 0;
   const values: MutableWizardValues = {};
+  let hasPrompted = false;
 
   while (stepIndex < STEP_ORDER.length) {
-    logChosenValues(values, log);
+    if (hasPrompted) {
+      log("");
+    }
+    hasPrompted = true;
 
     const step: Step = STEP_ORDER[stepIndex];
 

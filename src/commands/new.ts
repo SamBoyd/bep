@@ -55,6 +55,6 @@ export async function runNew(rootDir: string, id: string): Promise<number> {
     throw error;
   }
 
-  console.log(`Created ${relativePath}.`);
+  console.log(`\nCreated ${relativePath}.`);
   return 0;
 }
