@@ -4,10 +4,10 @@
 > Status: exploratory. This repository currently contains the product spec and is using README-driven development: update this README first, then make it true with code.
 
 ## README-driven development notes
-This document is intentionally a **single-file introduction** that defines the initial *public interface* (CLI + file formats). If the README starts turning into a massive spec, that’s a signal to split features into smaller, more modular pieces.
+This document is intentionally a **single-file introduction** that defines the initial *public interface* (CLI + file formats). If the README starts turning into a massive spec, that's a signal to split features into smaller, more modular pieces.
 
 ## Why
-AI tools compress build time, but they don’t compress:
+AI tools compress build time, but they don't compress:
 - validation cycles
 - feedback loops
 - distribution uncertainty
@@ -20,7 +20,7 @@ As build velocity increases, the cost of poor decisions compounds faster. BEP is
 BEP treats each feature as a **capped bet** with:
 - a primary assumption
 - an exposure cap (e.g. hours, sessions, calendar days)
-- a validation metric (a “leading indicator”)
+- a validation metric (a "leading indicator")
 - a default action if validation fails (kill / narrow / pivot)
 
 This is intentionally **not**:
@@ -108,45 +108,28 @@ bets/
 ## CLI (proposed public API)
 This README is defining the first-pass interface we intend to implement.
 
-## Installation (proposed)
-We want installs to be:
-- **one command** for end users
-- no runtime dependencies (single binary)
-- cross-platform (macOS/Linux/Windows)
+## Installation (current)
+Run with `npx`:
 
-Implementation plan: Go CLI + Charmbracelet TUI (`bubbletea`/`lipgloss`/`bubbles`).
-
-### Recommended (end users): Homebrew
-Target UX (once published):
 ```bash
-brew install <tap>/bep
+npx bep-cli@latest <command>
 ```
 
-### Alternative (end users): prebuilt binaries
-Plan: publish release artifacts for macOS/Linux/Windows and provide a curl/powershell install snippet.
+## Agent Tracking (v1)
+BEP supports hook-based session tracking to reduce manual time logging friction for AI-native workflows.
 
-### From source (contributors): Go toolchain
-Target UX:
-```bash
-go install ./cmd/bep
-```
+In v1, auto-tracking is focused on **Claude Code** hooks:
+- High-value hook events are logged (`UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `SessionEnd`)
+- Events are logged under `bets/_logs/agent-sessions.jsonl`
+- No commit-count tracking in v1
 
-If/when this becomes a published Go module:
-```bash
-go install <module>/cmd/bep@latest
-```
+Agent support matrix in the init UX:
+- Claude Code: supported now
+- Cursor: coming soon
+- Codex: coming soon
+- Windsurf: coming soon
 
-### Other distribution channels (later)
-- package managers (Scoop, AUR, etc.)
-
-## TUI (planned)
-The command surface should support both:
-- **a fast interactive TUI** for day-to-day use
-- **stable subcommands** for scripting/automation
-
-Proposed behavior:
-- `bep` opens the TUI dashboard (active bets, exposure vs cap, last evidence snapshot)
-- `bep <subcommand>` runs in non-interactive mode (CI-friendly)
+The coming-soon agents are intentionally visible in selection so users can see roadmap direction.
 
 ### Initialize BEP in a repo
 ```bash
@@ -154,8 +137,30 @@ bep init
 ```
 Creates `bets/`, `bets/_logs/`, and `bets/_evidence/`.
 
+`bep init` then asks whether to install agent tracking hooks. If you opt in, it shows an agent selector with Claude Code plus coming-soon agents.
+
+Hook install target resolution:
+- The command walks up from your current directory (Git-style ancestor discovery)
+- It uses the nearest existing `.claude` directory
+- If no `.claude` directory exists in ancestors, install fails with setup guidance and writes no hook config
+
 Only `bep init` creates BEP repo structure. All other commands require an existing initialized BEP repo.
 Like Git, commands work from either the BEP repo root or any subdirectory under it.
+
+### Init examples
+Interactive:
+```bash
+bep init
+# ? Install agent tracking hooks now?
+# ? Choose an agent: Claude Code
+# Installed Claude Code tracking hooks in .claude/settings.json.
+```
+
+Non-interactive:
+```bash
+bep init --install-hooks --agent claude-code
+bep init --no-install-hooks
+```
 
 ### Create a new bet
 ```bash
@@ -251,13 +256,13 @@ The system should surface evidence and compare to the declared threshold; it sho
 - Implement `bep init/new/status` with zero external dependencies
 - Implement exposure logging (sessions first; hours derived)
 - Implement manual `bep check` evidence capture and evolve provider integrations iteratively
-- Add optional “hard threshold” prompting behavior
+- Add optional "hard threshold" prompting behavior
 
 ## Contributing
 If you want to help, start by:
 - proposing changes to the BEP schema (fields, required sections, ergonomics)
-- stress-testing the CLI surface area above (what’s missing / too much / unclear)
-- suggesting minimal enforcement defaults that don’t feel bureaucratic
+- stress-testing the CLI surface area above (what's missing / too much / unclear)
+- suggesting minimal enforcement defaults that don't feel bureaucratic
 
 ---
 

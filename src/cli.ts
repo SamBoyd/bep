@@ -5,6 +5,7 @@ import { runNew } from "./commands/new";
 import { runStart } from "./commands/start";
 import { runStop } from "./commands/stop";
 import { runStatus } from "./commands/status";
+import { runHook } from "./commands/hook";
 
 export async function main(argv: string[]): Promise<void> {
   const program = new Command();
@@ -14,8 +15,14 @@ export async function main(argv: string[]): Promise<void> {
   program
     .command("init")
     .description("Initialize BEP directories in the current repository")
-    .action(async () => {
-      const exitCode = await runInit();
+    .option("--install-hooks", "Install agent tracking hooks")
+    .option("--no-install-hooks", "Skip agent tracking hook setup")
+    .option("--agent <agent>", "Agent target for hook setup (currently: claude-code)")
+    .action(async (options: { installHooks?: boolean; agent?: string }) => {
+      const exitCode = await runInit({
+        installHooks: options.installHooks,
+        agent: options.agent,
+      });
       process.exitCode = exitCode;
     });
 
@@ -56,6 +63,14 @@ export async function main(argv: string[]): Promise<void> {
     .description("Capture manual validation evidence for a BEP")
     .action(async (id: string) => {
       const exitCode = await runCheck(id);
+      process.exitCode = exitCode;
+    });
+
+  program
+    .command("hook <agent> <event>")
+    .description("Internal command used by agent hook integrations")
+    .action(async (agent: string, event: string) => {
+      const exitCode = await runHook(agent, event);
       process.exitCode = exitCode;
     });
 
