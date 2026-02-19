@@ -57,13 +57,13 @@ export async function runStop(rootDir: string, id: string): Promise<number> {
   const relativeBetPath = getBetRelativePath(id);
   const absoluteBetPath = getBetAbsolutePath(rootDir, id);
 
-  let parsedBetForPause: Awaited<ReturnType<typeof readBetFile>>["parsed"] | null = null;
+  let betForPause: Awaited<ReturnType<typeof readBetFile>>["bet"] | null = null;
   const hasBetFile = await pathExists(absoluteBetPath);
 
   if (hasBetFile) {
     try {
-      parsedBetForPause = (await readBetFile(rootDir, id)).parsed;
-      parsedBetForPause.data.status = "paused";
+      betForPause = (await readBetFile(rootDir, id)).bet;
+      betForPause.data.status = "paused";
     } catch (error) {
       console.error((error as Error).message);
       return 1;
@@ -74,8 +74,8 @@ export async function runStop(rootDir: string, id: string): Promise<number> {
   const serializedLogs = logs.map((line) => JSON.stringify(line)).join("\n").concat("\n");
 
   try {
-    if (parsedBetForPause !== null) {
-      await writeBetFile(rootDir, id, parsedBetForPause);
+    if (betForPause !== null) {
+      await writeBetFile(rootDir, id, betForPause);
     }
     await appendFile(logPath, serializedLogs, "utf8");
     await writeState(rootDir, next.state);

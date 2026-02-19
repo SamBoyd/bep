@@ -35,19 +35,18 @@ export async function runStart(rootDir: string, id: string): Promise<number> {
     return 0;
   }
 
-  let parsed;
+  let bet;
   try {
-    const betFile = await readBetFile(rootDir, id);
-    parsed = betFile.parsed;
+    bet = (await readBetFile(rootDir, id)).bet;
   } catch (error) {
     console.error((error as Error).message);
     return 1;
   }
 
-  parsed.data.status = "active";
+  bet.data.status = "active";
 
   try {
-    await writeBetFile(rootDir, id, parsed);
+    await writeBetFile(rootDir, id, bet);
     await writeState(rootDir, next.state);
   } catch (error) {
     console.error(`Failed to start bet '${id}': ${(error as Error).message}`);

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { getBetRelativePath, readBetFile, writeBetFile } from "../../src/fs/bets";
@@ -32,7 +32,7 @@ describe("fs/bets", () => {
 
       expect(result.relativePath).toBe(path.join(BETS_DIR, "landing-page.md"));
       expect(result.absolutePath).toBe(path.join(tempDir, BETS_DIR, "landing-page.md"));
-      expect(result.parsed.data).toMatchObject({ id: "landing-page", status: "paused" });
+      expect(result.bet.data).toMatchObject({ id: "landing-page", status: "paused" });
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -57,6 +57,40 @@ describe("fs/bets", () => {
     }
   });
 
+  test("throws contextual error for malformed yaml structure in frontmatter", async () => {
+    const tempDir = await createTempDir();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        "---\nid: landing-page\nleading_indicator:\n  type: manual\n   operator: gte\n---\n",
+        "utf8",
+      );
+
+      await expect(readBetFile(tempDir, "landing-page")).rejects.toThrow(
+        "Failed to parse BEP file at bets/landing-page.md:",
+      );
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("throws contextual error when bet path points to a directory", async () => {
+    const tempDir = await createTempDir();
+
+    try {
+      await initRepo(tempDir);
+      await mkdir(path.join(tempDir, BETS_DIR, "landing-page.md"));
+
+      await expect(readBetFile(tempDir, "landing-page")).rejects.toThrow(
+        "Failed to parse BEP file at bets/landing-page.md:",
+      );
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
   test("writes updated frontmatter to disk", async () => {
     const tempDir = await createTempDir();
 
@@ -68,9 +102,9 @@ describe("fs/bets", () => {
         "utf8",
       );
 
-      const bet = await readBetFile(tempDir, "landing-page");
-      bet.parsed.data.status = "active";
-      await writeBetFile(tempDir, "landing-page", bet.parsed);
+      const file = await readBetFile(tempDir, "landing-page");
+      file.bet.data.status = "active";
+      await writeBetFile(tempDir, "landing-page", file.bet);
 
       const next = await readFile(path.join(tempDir, BETS_DIR, "landing-page.md"), "utf8");
       expect(next).toContain("status: active");

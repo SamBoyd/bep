@@ -51,15 +51,15 @@ export async function runCheck(rootDir: string, id: string): Promise<number> {
     return 1;
   }
 
-  let parsed;
+  let bet;
   try {
-    parsed = (await readBetFile(rootDir, id)).parsed;
+    bet = (await readBetFile(rootDir, id)).bet;
   } catch (error) {
     console.error((error as Error).message);
     return 1;
   }
 
-  const rawLeadingIndicator = (parsed.data as { leading_indicator?: unknown }).leading_indicator;
+  const rawLeadingIndicator = bet.data.leading_indicator;
   const leadingIndicatorType = getLeadingIndicatorType(rawLeadingIndicator);
   if (!leadingIndicatorType) {
     console.error("Bet has invalid leading_indicator: missing string field 'type'.");

@@ -181,4 +181,29 @@ describe("runCheck", () => {
       await rm(tempDir, { recursive: true, force: true });
     }
   });
+
+  test("fails when manual leading_indicator is missing required target", async () => {
+    const tempDir = await createTempDir();
+    const errorSpy = jest.spyOn(console, "error").mockImplementation();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nleading_indicator:\n  type: manual\n  operator: gte\n---\n",
+        "utf8",
+      );
+
+      const exitCode = await runCheck(tempDir, "landing-page");
+
+      expect(exitCode).toBe(1);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Bet 'landing-page' has invalid leading_indicator:"),
+      );
+      expect(mockedRunCheckPrompt).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
 });

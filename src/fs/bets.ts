@@ -1,15 +1,14 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
+import type { BetFile, BetFrontmatter } from "../bep/file";
 import { BETS_DIR } from "./init";
-
-type ParsedBetFile = matter.GrayMatterFile<string>;
 
 export type ReadBetFileResult = {
   relativePath: string;
   absolutePath: string;
   markdown: string;
-  parsed: ParsedBetFile;
+  bet: BetFile;
 };
 
 export function getBetRelativePath(idOrFileName: string): string {
@@ -41,7 +40,7 @@ export async function readBetFile(rootDir: string, idOrFileName: string): Promis
     throw new Error(`Failed to parse BEP file at ${relativePath}: ${(error as Error).message}`);
   }
 
-  let parsed: ParsedBetFile;
+  let parsed: matter.GrayMatterFile<string>;
   try {
     parsed = matter(markdown);
   } catch (error) {
@@ -52,11 +51,14 @@ export async function readBetFile(rootDir: string, idOrFileName: string): Promis
     relativePath,
     absolutePath,
     markdown,
-    parsed,
+    bet: {
+      content: parsed.content,
+      data: parsed.data as BetFrontmatter,
+    },
   };
 }
 
-export async function writeBetFile(rootDir: string, idOrFileName: string, parsed: ParsedBetFile): Promise<void> {
+export async function writeBetFile(rootDir: string, idOrFileName: string, bet: BetFile): Promise<void> {
   const absolutePath = getBetAbsolutePath(rootDir, idOrFileName);
-  await writeFile(absolutePath, matter.stringify(parsed.content, parsed.data), "utf8");
+  await writeFile(absolutePath, matter.stringify(bet.content, bet.data), "utf8");
 }

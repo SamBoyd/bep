@@ -230,9 +230,9 @@ export async function runStatus(rootDir: string): Promise<number> {
   const nowMs = Date.now();
   for (const fileName of betFiles) {
     const id = fileName.slice(0, -".md".length);
-    let parsed;
+    let bet;
     try {
-      parsed = (await readBetFile(rootDir, fileName)).parsed;
+      bet = (await readBetFile(rootDir, fileName)).bet;
     } catch (error) {
       console.error((error as Error).message);
       return 1;
@@ -254,7 +254,7 @@ export async function runStatus(rootDir: string): Promise<number> {
       return 1;
     }
 
-    const frontmatter = parsed.data as Record<string, unknown>;
+    const frontmatter = bet.data;
     const status = typeof frontmatter.status === "string" ? frontmatter.status : "unknown";
     const maxHours = parseMaxHours(frontmatter);
     const maxCalendarDays = maxHours === null ? parseMaxCalendarDays(frontmatter) : null;
