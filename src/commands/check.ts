@@ -1,8 +1,8 @@
-import { access, readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import matter from "gray-matter";
 import { isValidBetId } from "../bep/id";
-import { BETS_DIR, EVIDENCE_DIR, initRepo } from "../fs/init";
+import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile } from "../fs/bets";
+import { EVIDENCE_DIR, initRepo } from "../fs/init";
 import { listRegisteredProviderTypes, resolveProviderModule } from "../providers/registry";
 import { formatManualComparisonOperator } from "../providers/manual";
 import type { LeadingIndicator } from "../providers/types";
@@ -17,15 +17,6 @@ type EvidenceSnapshot = {
   notes?: string;
   meta?: Record<string, unknown>;
 };
-
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 function getLeadingIndicatorType(value: unknown): string | null {
   if (!value || typeof value !== "object") {
@@ -52,8 +43,8 @@ export async function runCheck(rootDir: string, id: string): Promise<number> {
 
   await initRepo(rootDir);
 
-  const relativeBetPath = path.join(BETS_DIR, `${id}.md`);
-  const absoluteBetPath = path.join(rootDir, relativeBetPath);
+  const relativeBetPath = getBetRelativePath(id);
+  const absoluteBetPath = getBetAbsolutePath(rootDir, id);
 
   if (!(await pathExists(absoluteBetPath))) {
     console.error(`Bet '${id}' does not exist at ${relativeBetPath}. Run 'bep new ${id}' first.`);
@@ -62,10 +53,9 @@ export async function runCheck(rootDir: string, id: string): Promise<number> {
 
   let parsed;
   try {
-    const markdown = await readFile(absoluteBetPath, "utf8");
-    parsed = matter(markdown);
+    parsed = (await readBetFile(rootDir, id)).parsed;
   } catch (error) {
-    console.error(`Failed to parse BEP file at ${relativeBetPath}: ${(error as Error).message}`);
+    console.error((error as Error).message);
     return 1;
   }
 

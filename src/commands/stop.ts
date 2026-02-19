@@ -1,8 +1,8 @@
-import { access, appendFile, readFile, writeFile } from "node:fs/promises";
+import { appendFile } from "node:fs/promises";
 import path from "node:path";
-import matter from "gray-matter";
 import { isValidBetId } from "../bep/id";
-import { BETS_DIR, LOGS_DIR, initRepo } from "../fs/init";
+import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile, writeBetFile } from "../fs/bets";
+import { LOGS_DIR, initRepo } from "../fs/init";
 import { readState, removeActiveSessions, writeState } from "../state/state";
 
 type StopLogEntry = {
@@ -11,15 +11,6 @@ type StopLogEntry = {
   stopped_at: string;
   duration_seconds: number;
 };
-
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function runStop(rootDir: string, id: string): Promise<number> {
   if (!isValidBetId(id)) {
@@ -63,20 +54,18 @@ export async function runStop(rootDir: string, id: string): Promise<number> {
     });
   }
 
-  const relativeBetPath = path.join(BETS_DIR, `${id}.md`);
-  const absoluteBetPath = path.join(rootDir, relativeBetPath);
+  const relativeBetPath = getBetRelativePath(id);
+  const absoluteBetPath = getBetAbsolutePath(rootDir, id);
 
-  let pausedMarkdown: string | null = null;
+  let parsedBetForPause: Awaited<ReturnType<typeof readBetFile>>["parsed"] | null = null;
   const hasBetFile = await pathExists(absoluteBetPath);
 
   if (hasBetFile) {
     try {
-      const markdown = await readFile(absoluteBetPath, "utf8");
-      const parsed = matter(markdown);
-      parsed.data.status = "paused";
-      pausedMarkdown = matter.stringify(parsed.content, parsed.data);
+      parsedBetForPause = (await readBetFile(rootDir, id)).parsed;
+      parsedBetForPause.data.status = "paused";
     } catch (error) {
-      console.error(`Failed to parse BEP file at ${relativeBetPath}: ${(error as Error).message}`);
+      console.error((error as Error).message);
       return 1;
     }
   }
@@ -85,10 +74,9 @@ export async function runStop(rootDir: string, id: string): Promise<number> {
   const serializedLogs = logs.map((line) => JSON.stringify(line)).join("\n").concat("\n");
 
   try {
-    if (pausedMarkdown !== null) {
-      await writeFile(absoluteBetPath, pausedMarkdown, "utf8");
+    if (parsedBetForPause !== null) {
+      await writeBetFile(rootDir, id, parsedBetForPause);
     }
-
     await appendFile(logPath, serializedLogs, "utf8");
     await writeState(rootDir, next.state);
   } catch (error) {

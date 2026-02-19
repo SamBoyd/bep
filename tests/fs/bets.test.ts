@@ -1,0 +1,81 @@
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { getBetRelativePath, readBetFile, writeBetFile } from "../../src/fs/bets";
+import { BETS_DIR, initRepo } from "../../src/fs/init";
+
+async function createTempDir(): Promise<string> {
+  return mkdtemp(path.join(os.tmpdir(), "bep-fs-bets-test-"));
+}
+
+describe("fs/bets", () => {
+  test("builds relative path for id input", () => {
+    expect(getBetRelativePath("landing-page")).toBe(path.join(BETS_DIR, "landing-page.md"));
+  });
+
+  test("builds relative path for file-name input", () => {
+    expect(getBetRelativePath("landing-page.md")).toBe(path.join(BETS_DIR, "landing-page.md"));
+  });
+
+  test("reads and parses valid bet markdown", async () => {
+    const tempDir = await createTempDir();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "utf8",
+      );
+
+      const result = await readBetFile(tempDir, "landing-page");
+
+      expect(result.relativePath).toBe(path.join(BETS_DIR, "landing-page.md"));
+      expect(result.absolutePath).toBe(path.join(tempDir, BETS_DIR, "landing-page.md"));
+      expect(result.parsed.data).toMatchObject({ id: "landing-page", status: "paused" });
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("throws contextual error for malformed frontmatter", async () => {
+    const tempDir = await createTempDir();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        "---\nid: landing-page\nstatus: paused\ncreated_at: [\n---\n",
+        "utf8",
+      );
+
+      await expect(readBetFile(tempDir, "landing-page")).rejects.toThrow(
+        "Failed to parse BEP file at bets/landing-page.md:",
+      );
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("writes updated frontmatter to disk", async () => {
+    const tempDir = await createTempDir();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "utf8",
+      );
+
+      const bet = await readBetFile(tempDir, "landing-page");
+      bet.parsed.data.status = "active";
+      await writeBetFile(tempDir, "landing-page", bet.parsed);
+
+      const next = await readFile(path.join(tempDir, BETS_DIR, "landing-page.md"), "utf8");
+      expect(next).toContain("status: active");
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+});

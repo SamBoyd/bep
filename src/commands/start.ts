@@ -1,18 +1,7 @@
-import { access, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-import matter from "gray-matter";
+import { readBetFile, getBetAbsolutePath, getBetRelativePath, pathExists, writeBetFile } from "../fs/bets";
 import { isValidBetId } from "../bep/id";
-import { BETS_DIR, initRepo } from "../fs/init";
+import { initRepo } from "../fs/init";
 import { addActiveSession, readState, writeState } from "../state/state";
-
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function runStart(rootDir: string, id: string): Promise<number> {
   if (!isValidBetId(id)) {
@@ -22,8 +11,8 @@ export async function runStart(rootDir: string, id: string): Promise<number> {
 
   await initRepo(rootDir);
 
-  const relativePath = path.join(BETS_DIR, `${id}.md`);
-  const absolutePath = path.join(rootDir, relativePath);
+  const relativePath = getBetRelativePath(id);
+  const absolutePath = getBetAbsolutePath(rootDir, id);
 
   if (!(await pathExists(absolutePath))) {
     console.error(`Bet '${id}' does not exist at ${relativePath}. Run 'bep new ${id}' first.`);
@@ -48,17 +37,17 @@ export async function runStart(rootDir: string, id: string): Promise<number> {
 
   let parsed;
   try {
-    const markdown = await readFile(absolutePath, "utf8");
-    parsed = matter(markdown);
+    const betFile = await readBetFile(rootDir, id);
+    parsed = betFile.parsed;
   } catch (error) {
-    console.error(`Failed to parse BEP file at ${relativePath}: ${(error as Error).message}`);
+    console.error((error as Error).message);
     return 1;
   }
 
   parsed.data.status = "active";
 
   try {
-    await writeFile(absolutePath, matter.stringify(parsed.content, parsed.data), "utf8");
+    await writeBetFile(rootDir, id, parsed);
     await writeState(rootDir, next.state);
   } catch (error) {
     console.error(`Failed to start bet '${id}': ${(error as Error).message}`);

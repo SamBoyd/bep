@@ -1,7 +1,7 @@
-import { access, readFile, readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import matter from "gray-matter";
 import { formatManualComparisonOperator } from "../providers/manual";
+import { pathExists, readBetFile } from "../fs/bets";
 import { BETS_DIR, EVIDENCE_DIR, LOGS_DIR, initRepo } from "../fs/init";
 import { readState } from "../state/state";
 
@@ -43,15 +43,6 @@ const STATUS_HEADERS: Record<keyof StatusRow, string> = {
   warning: "warning",
   validation: "validation",
 };
-
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 function formatHours(value: number): string {
   return value.toFixed(2);
@@ -239,14 +230,11 @@ export async function runStatus(rootDir: string): Promise<number> {
   const nowMs = Date.now();
   for (const fileName of betFiles) {
     const id = fileName.slice(0, -".md".length);
-    const relativeBetPath = path.join(BETS_DIR, fileName);
-    const absoluteBetPath = path.join(rootDir, relativeBetPath);
-
     let parsed;
     try {
-      parsed = matter(await readFile(absoluteBetPath, "utf8"));
+      parsed = (await readBetFile(rootDir, fileName)).parsed;
     } catch (error) {
-      console.error(`Failed to parse BEP file at ${relativeBetPath}: ${(error as Error).message}`);
+      console.error((error as Error).message);
       return 1;
     }
 
