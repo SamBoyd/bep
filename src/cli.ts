@@ -4,6 +4,7 @@ import { runCheck } from "./commands/check";
 import { runNew } from "./commands/new";
 import { runStart } from "./commands/start";
 import { runStop } from "./commands/stop";
+import { runStatus } from "./commands/status";
 
 export async function main(argv: string[]): Promise<void> {
   const program = new Command();
@@ -39,6 +40,14 @@ export async function main(argv: string[]): Promise<void> {
     .description("Stop work on an active BEP and log session exposure")
     .action(async (id: string) => {
       const exitCode = await runStop(process.cwd(), id);
+      process.exitCode = exitCode;
+    });
+
+  program
+    .command("status")
+    .description("Show status for current bets")
+    .action(async () => {
+      const exitCode = await runStatus(process.cwd());
       process.exitCode = exitCode;
     });
 

@@ -215,6 +215,7 @@ bep status
 Shows:
 - active bets
 - exposure used vs cap
+- cap warning labels (`NEARING_CAP` at >=70%, `AT_CAP` at >=100%)
 - last known validation result vs target
 
 ## Intended workflow
