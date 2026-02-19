@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { runStatus } from "../../src/commands/status";
@@ -14,18 +14,37 @@ function getPrintedOutput(logSpy: jest.SpyInstance): string {
 }
 
 describe("runStatus", () => {
+  test("fails when repository is not initialized", async () => {
+    const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+    const errorSpy = jest.spyOn(console, "error").mockImplementation();
+
+    try {
+      const exitCode = await runStatus();
+
+      expect(exitCode).toBe(1);
+      expect(errorSpy).toHaveBeenCalledWith("fatal: not a bep repository (or any of the parent directories): bets");
+    } finally {
+      cwdSpy.mockRestore();
+      errorSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
   test("prints no bets message when none exist", async () => {
     const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const logSpy = jest.spyOn(console, "log").mockImplementation();
 
     try {
       await initRepo(tempDir);
 
-      const exitCode = await runStatus(tempDir);
+      const exitCode = await runStatus();
 
       expect(exitCode).toBe(0);
       expect(logSpy).toHaveBeenCalledWith("No bets found.");
     } finally {
+      cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -33,6 +52,7 @@ describe("runStatus", () => {
 
   test("prints row with zero exposure and no validation by default", async () => {
     const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const logSpy = jest.spyOn(console, "log").mockImplementation();
 
     try {
@@ -43,7 +63,7 @@ describe("runStatus", () => {
         "utf8",
       );
 
-      const exitCode = await runStatus(tempDir);
+      const exitCode = await runStatus();
       const output = getPrintedOutput(logSpy);
 
       expect(exitCode).toBe(0);
@@ -53,6 +73,7 @@ describe("runStatus", () => {
       expect(output).toContain("0.00");
       expect(output).toContain("N/A");
     } finally {
+      cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -60,6 +81,7 @@ describe("runStatus", () => {
 
   test("sums multiple log lines and computes cap warnings", async () => {
     const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const logSpy = jest.spyOn(console, "log").mockImplementation();
 
     try {
@@ -87,7 +109,7 @@ describe("runStatus", () => {
         "utf8",
       );
 
-      const exitCode = await runStatus(tempDir);
+      const exitCode = await runStatus();
       const output = getPrintedOutput(logSpy);
 
       expect(exitCode).toBe(0);
@@ -100,6 +122,7 @@ describe("runStatus", () => {
       expect(output).toContain("NEARING_CAP");
       expect(output).toContain("AT_CAP");
     } finally {
+      cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -107,6 +130,7 @@ describe("runStatus", () => {
 
   test("marks active bets from state and displays manual validation result", async () => {
     const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const logSpy = jest.spyOn(console, "log").mockImplementation();
 
     try {
@@ -142,7 +166,7 @@ describe("runStatus", () => {
         "utf8",
       );
 
-      const exitCode = await runStatus(tempDir);
+      const exitCode = await runStatus();
       const output = getPrintedOutput(logSpy);
 
       expect(exitCode).toBe(0);
@@ -150,14 +174,16 @@ describe("runStatus", () => {
       expect(output).toContain("yes");
       expect(output).toContain("FAIL 13 >= 20");
     } finally {
+      cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
   });
 
-  test("recreates missing state file and continues", async () => {
+  test("fails when required state file is missing", async () => {
     const tempDir = await createTempDir();
-    const logSpy = jest.spyOn(console, "log").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+    const errorSpy = jest.spyOn(console, "error").mockImplementation();
 
     try {
       await initRepo(tempDir);
@@ -168,20 +194,20 @@ describe("runStatus", () => {
         "utf8",
       );
 
-      const exitCode = await runStatus(tempDir);
-      const state = JSON.parse(await readFile(path.join(tempDir, STATE_PATH), "utf8"));
+      const exitCode = await runStatus();
 
-      expect(exitCode).toBe(0);
-      expect(state).toEqual({ active: [] });
-      expect(getPrintedOutput(logSpy)).toContain("landing-page");
+      expect(exitCode).toBe(1);
+      expect(errorSpy).toHaveBeenCalledWith("fatal: not a bep repository (or any of the parent directories): bets");
     } finally {
-      logSpy.mockRestore();
+      cwdSpy.mockRestore();
+      errorSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
   });
 
   test("fails for malformed markdown file", async () => {
     const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const errorSpy = jest.spyOn(console, "error").mockImplementation();
 
     try {
@@ -192,11 +218,12 @@ describe("runStatus", () => {
         "utf8",
       );
 
-      const exitCode = await runStatus(tempDir);
+      const exitCode = await runStatus();
 
       expect(exitCode).toBe(1);
       expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to parse BEP file at bets/landing-page.md:"));
     } finally {
+      cwdSpy.mockRestore();
       errorSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -204,6 +231,7 @@ describe("runStatus", () => {
 
   test("supports calendar-day caps in table output", async () => {
     const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const logSpy = jest.spyOn(console, "log").mockImplementation();
 
     try {
@@ -215,7 +243,7 @@ describe("runStatus", () => {
         "utf8",
       );
 
-      const exitCode = await runStatus(tempDir);
+      const exitCode = await runStatus();
       const output = getPrintedOutput(logSpy);
 
       expect(exitCode).toBe(0);
@@ -223,6 +251,7 @@ describe("runStatus", () => {
       expect(output).toContain("10.00d");
       expect(output).toContain("NEARING_CAP");
     } finally {
+      cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -230,6 +259,7 @@ describe("runStatus", () => {
 
   test("fails for malformed log line", async () => {
     const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const errorSpy = jest.spyOn(console, "error").mockImplementation();
 
     try {
@@ -241,14 +271,43 @@ describe("runStatus", () => {
       );
       await writeFile(path.join(tempDir, LOGS_DIR, "landing-page.jsonl"), "not-json\n", "utf8");
 
-      const exitCode = await runStatus(tempDir);
+      const exitCode = await runStatus();
 
       expect(exitCode).toBe(1);
       expect(errorSpy).toHaveBeenCalledWith(
         "Failed to parse log file at bets/_logs/landing-page.jsonl: invalid JSON on line 1.",
       );
     } finally {
+      cwdSpy.mockRestore();
       errorSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("works when run from a subdirectory of initialized repo", async () => {
+    const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd");
+    const logSpy = jest.spyOn(console, "log").mockImplementation();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "utf8",
+      );
+      const nestedDir = path.join(tempDir, "services", "api");
+      await mkdir(nestedDir, { recursive: true });
+      cwdSpy.mockReturnValue(nestedDir);
+
+      const exitCode = await runStatus();
+      const output = getPrintedOutput(logSpy);
+
+      expect(exitCode).toBe(0);
+      expect(output).toContain("landing-page");
+    } finally {
+      cwdSpy.mockRestore();
+      logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
   });

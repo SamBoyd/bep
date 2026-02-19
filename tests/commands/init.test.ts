@@ -11,13 +11,15 @@ describe("runInit", () => {
   test("returns 0 and logs initialization message", async () => {
     const tempDir = await createTempDir();
     const logSpy = jest.spyOn(console, "log").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
 
     try {
-      const exitCode = await runInit(tempDir);
+      const exitCode = await runInit();
 
       expect(exitCode).toBe(0);
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Initialized BEP"));
     } finally {
+      cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -26,14 +28,16 @@ describe("runInit", () => {
   test("returns 0 and logs already initialized message", async () => {
     const tempDir = await createTempDir();
     const logSpy = jest.spyOn(console, "log").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
 
     try {
-      await runInit(tempDir);
-      const exitCode = await runInit(tempDir);
+      await runInit();
+      const exitCode = await runInit();
 
       expect(exitCode).toBe(0);
       expect(logSpy).toHaveBeenLastCalledWith("BEP is already initialized.");
     } finally {
+      cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }

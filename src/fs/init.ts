@@ -15,6 +15,8 @@ const DEFAULT_STATE = {
   active: [],
 };
 
+const REQUIRED_INIT_PATHS = [BETS_DIR, LOGS_DIR, EVIDENCE_DIR, STATE_PATH] as const;
+
 async function pathExists(filePath: string): Promise<boolean> {
   try {
     await access(filePath);
@@ -47,4 +49,44 @@ export async function initRepo(rootDir: string): Promise<InitResult> {
     createdPaths,
     alreadyInitialized: createdPaths.length === 0,
   };
+}
+
+async function isInitializedRepoRoot(candidateRootDir: string): Promise<boolean> {
+  for (const relativePath of REQUIRED_INIT_PATHS) {
+    const absolutePath = path.join(candidateRootDir, relativePath);
+    if (!(await pathExists(absolutePath))) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export async function findInitializedRepo(startDir: string): Promise<{ rootDir: string; betsDir: string } | null> {
+  let currentDir = path.resolve(startDir);
+
+  while (true) {
+    if (await isInitializedRepoRoot(currentDir)) {
+      return {
+        rootDir: currentDir,
+        betsDir: path.join(currentDir, BETS_DIR),
+      };
+    }
+
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      return null;
+    }
+
+    currentDir = parentDir;
+  }
+}
+
+export async function ensureInitializedRepo(startDir: string): Promise<{ rootDir: string; betsDir: string }> {
+  const found = await findInitializedRepo(startDir);
+  if (!found) {
+    throw new Error("fatal: not a bep repository (or any of the parent directories): bets");
+  }
+
+  return found;
 }

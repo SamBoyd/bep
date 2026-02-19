@@ -15,7 +15,7 @@ export async function main(argv: string[]): Promise<void> {
     .command("init")
     .description("Initialize BEP directories in the current repository")
     .action(async () => {
-      const exitCode = await runInit(process.cwd());
+      const exitCode = await runInit();
       process.exitCode = exitCode;
     });
 
@@ -23,7 +23,7 @@ export async function main(argv: string[]): Promise<void> {
     .command("new <id>")
     .description("Create a new BEP markdown file")
     .action(async (id: string) => {
-      const exitCode = await runNew(process.cwd(), id);
+      const exitCode = await runNew(id);
       process.exitCode = exitCode;
     });
 
@@ -31,7 +31,7 @@ export async function main(argv: string[]): Promise<void> {
     .command("start <id>")
     .description("Start work on an existing BEP")
     .action(async (id: string) => {
-      const exitCode = await runStart(process.cwd(), id);
+      const exitCode = await runStart(id);
       process.exitCode = exitCode;
     });
 
@@ -39,7 +39,7 @@ export async function main(argv: string[]): Promise<void> {
     .command("stop <id>")
     .description("Stop work on an active BEP and log session exposure")
     .action(async (id: string) => {
-      const exitCode = await runStop(process.cwd(), id);
+      const exitCode = await runStop(id);
       process.exitCode = exitCode;
     });
 
@@ -47,7 +47,7 @@ export async function main(argv: string[]): Promise<void> {
     .command("status")
     .description("Show status for current bets")
     .action(async () => {
-      const exitCode = await runStatus(process.cwd());
+      const exitCode = await runStatus();
       process.exitCode = exitCode;
     });
 
@@ -55,7 +55,7 @@ export async function main(argv: string[]): Promise<void> {
     .command("check <id>")
     .description("Capture manual validation evidence for a BEP")
     .action(async (id: string) => {
-      const exitCode = await runCheck(process.cwd(), id);
+      const exitCode = await runCheck(id);
       process.exitCode = exitCode;
     });
 

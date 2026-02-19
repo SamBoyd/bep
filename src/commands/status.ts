@@ -2,7 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { formatManualComparisonOperator } from "../providers/manual";
 import { pathExists, readBetFile } from "../fs/bets";
-import { BETS_DIR, EVIDENCE_DIR, LOGS_DIR, initRepo } from "../fs/init";
+import { BETS_DIR, EVIDENCE_DIR, LOGS_DIR, ensureInitializedRepo } from "../fs/init";
 import { readState } from "../state/state";
 
 type StatusRow = {
@@ -194,8 +194,15 @@ function renderStatusTable(rows: StatusRow[]): string {
   return rendered.join("\n");
 }
 
-export async function runStatus(rootDir: string): Promise<number> {
-  await initRepo(rootDir);
+export async function runStatus(): Promise<number> {
+  let rootDir: string;
+  try {
+    const cwd = process.cwd();
+    ({ rootDir } = await ensureInitializedRepo(cwd));
+  } catch (error) {
+    console.error((error as Error).message);
+    return 1;
+  }
 
   const betDir = path.join(rootDir, BETS_DIR);
 

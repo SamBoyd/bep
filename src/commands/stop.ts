@@ -2,7 +2,7 @@ import { appendFile } from "node:fs/promises";
 import path from "node:path";
 import { isValidBetId } from "../bep/id";
 import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile, writeBetFile } from "../fs/bets";
-import { LOGS_DIR, initRepo } from "../fs/init";
+import { LOGS_DIR, ensureInitializedRepo } from "../fs/init";
 import { readState, removeActiveSessions, writeState } from "../state/state";
 
 type StopLogEntry = {
@@ -12,13 +12,20 @@ type StopLogEntry = {
   duration_seconds: number;
 };
 
-export async function runStop(rootDir: string, id: string): Promise<number> {
+export async function runStop(id: string): Promise<number> {
   if (!isValidBetId(id)) {
     console.error(`Invalid bet id '${id}'. Use lowercase slug format like 'landing-page'.`);
     return 1;
   }
 
-  await initRepo(rootDir);
+  let rootDir: string;
+  try {
+    const cwd = process.cwd();
+    ({ rootDir } = await ensureInitializedRepo(cwd));
+  } catch (error) {
+    console.error((error as Error).message);
+    return 1;
+  }
 
   let state;
   try {

@@ -154,6 +154,9 @@ bep init
 ```
 Creates `bets/`, `bets/_logs/`, and `bets/_evidence/`.
 
+Only `bep init` creates BEP repo structure. All other commands require an existing initialized BEP repo.
+Like Git, commands work from either the BEP repo root or any subdirectory under it.
+
 ### Create a new bet
 ```bash
 bep new landing-page

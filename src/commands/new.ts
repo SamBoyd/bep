@@ -2,7 +2,7 @@ import { access, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { isValidBetId } from "../bep/id";
 import { renderNewBetMarkdown } from "../bep/template";
-import { BETS_DIR, initRepo } from "../fs/init";
+import { BETS_DIR, ensureInitializedRepo } from "../fs/init";
 import { runNewWizard } from "../ui/newWizard";
 
 async function pathExists(filePath: string): Promise<boolean> {
@@ -14,13 +14,20 @@ async function pathExists(filePath: string): Promise<boolean> {
   }
 }
 
-export async function runNew(rootDir: string, id: string): Promise<number> {
+export async function runNew(id: string): Promise<number> {
   if (!isValidBetId(id)) {
     console.error(`Invalid bet id '${id}'. Use lowercase slug format like 'landing-page'.`);
     return 1;
   }
 
-  await initRepo(rootDir);
+  let rootDir: string;
+  try {
+    const cwd = process.cwd();
+    ({ rootDir } = await ensureInitializedRepo(cwd));
+  } catch (error) {
+    console.error((error as Error).message);
+    return 1;
+  }
 
   const relativePath = path.join(BETS_DIR, `${id}.md`);
   const absolutePath = path.join(rootDir, relativePath);

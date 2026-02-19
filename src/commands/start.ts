@@ -1,15 +1,22 @@
 import { readBetFile, getBetAbsolutePath, getBetRelativePath, pathExists, writeBetFile } from "../fs/bets";
 import { isValidBetId } from "../bep/id";
-import { initRepo } from "../fs/init";
+import { ensureInitializedRepo } from "../fs/init";
 import { addActiveSession, readState, writeState } from "../state/state";
 
-export async function runStart(rootDir: string, id: string): Promise<number> {
+export async function runStart(id: string): Promise<number> {
   if (!isValidBetId(id)) {
     console.error(`Invalid bet id '${id}'. Use lowercase slug format like 'landing-page'.`);
     return 1;
   }
 
-  await initRepo(rootDir);
+  let rootDir: string;
+  try {
+    const cwd = process.cwd();
+    ({ rootDir } = await ensureInitializedRepo(cwd));
+  } catch (error) {
+    console.error((error as Error).message);
+    return 1;
+  }
 
   const relativePath = getBetRelativePath(id);
   const absolutePath = getBetAbsolutePath(rootDir, id);

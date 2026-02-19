@@ -1,8 +1,8 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { runNew } from "../../src/commands/new";
-import { BETS_DIR, STATE_PATH, initRepo } from "../../src/fs/init";
+import { BETS_DIR, initRepo } from "../../src/fs/init";
 import { runNewWizard } from "../../src/ui/newWizard";
 
 jest.mock("../../src/ui/newWizard", () => ({
@@ -23,6 +23,7 @@ describe("runNew", () => {
   test("creates a new bet file for a unique id", async () => {
     const tempDir = await createTempDir();
     const logSpy = jest.spyOn(console, "log").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
 
     mockedRunNewWizard.mockResolvedValue({
       cancelled: false,
@@ -38,7 +39,8 @@ describe("runNew", () => {
     });
 
     try {
-      const exitCode = await runNew(tempDir, "landing-page");
+      await initRepo(tempDir);
+      const exitCode = await runNew("landing-page");
       const filePath = path.join(tempDir, BETS_DIR, "landing-page.md");
       const content = await readFile(filePath, "utf8");
 
@@ -52,6 +54,7 @@ describe("runNew", () => {
       expect(content).not.toContain("max_calendar_days:");
       expect(logSpy).toHaveBeenCalledWith("\nCreated bets/landing-page.md.");
     } finally {
+      cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -60,13 +63,14 @@ describe("runNew", () => {
   test("fails when id already exists and leaves existing file unchanged", async () => {
     const tempDir = await createTempDir();
     const errorSpy = jest.spyOn(console, "error").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
 
     try {
       await initRepo(tempDir);
       const filePath = path.join(tempDir, BETS_DIR, "landing-page.md");
       await writeFile(filePath, "existing content\n", "utf8");
 
-      const exitCode = await runNew(tempDir, "landing-page");
+      const exitCode = await runNew("landing-page");
       const content = await readFile(filePath, "utf8");
 
       expect(exitCode).toBe(1);
@@ -76,6 +80,7 @@ describe("runNew", () => {
         "Bet 'landing-page' already exists at bets/landing-page.md. Choose a unique id.",
       );
     } finally {
+      cwdSpy.mockRestore();
       errorSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -84,9 +89,10 @@ describe("runNew", () => {
   test("fails for invalid id", async () => {
     const tempDir = await createTempDir();
     const errorSpy = jest.spyOn(console, "error").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
 
     try {
-      const exitCode = await runNew(tempDir, "Landing_Page");
+      const exitCode = await runNew("Landing_Page");
 
       expect(exitCode).toBe(1);
       expect(mockedRunNewWizard).not.toHaveBeenCalled();
@@ -94,6 +100,7 @@ describe("runNew", () => {
         "Invalid bet id 'Landing_Page'. Use lowercase slug format like 'landing-page'.",
       );
     } finally {
+      cwdSpy.mockRestore();
       errorSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -102,24 +109,48 @@ describe("runNew", () => {
   test("does not create file when wizard is cancelled", async () => {
     const tempDir = await createTempDir();
     const errorSpy = jest.spyOn(console, "error").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
 
     mockedRunNewWizard.mockResolvedValue({ cancelled: true });
 
     try {
-      const exitCode = await runNew(tempDir, "landing-page");
+      await initRepo(tempDir);
+      const exitCode = await runNew("landing-page");
       const filePath = path.join(tempDir, BETS_DIR, "landing-page.md");
 
       expect(exitCode).toBe(1);
       await expect(readFile(filePath, "utf8")).rejects.toThrow();
       expect(errorSpy).toHaveBeenCalledWith("Cancelled. No files were created.");
     } finally {
+      cwdSpy.mockRestore();
       errorSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
   });
 
-  test("auto-initializes repository layout", async () => {
+  test("fails when repository is not initialized", async () => {
     const tempDir = await createTempDir();
+    const errorSpy = jest.spyOn(console, "error").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+
+    try {
+      const exitCode = await runNew("onboarding-v2");
+
+      expect(exitCode).toBe(1);
+      expect(mockedRunNewWizard).not.toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalledWith(
+        "fatal: not a bep repository (or any of the parent directories): bets",
+      );
+    } finally {
+      cwdSpy.mockRestore();
+      errorSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("creates file when run from an initialized subdirectory", async () => {
+    const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd");
 
     mockedRunNewWizard.mockResolvedValue({
       cancelled: false,
@@ -134,14 +165,19 @@ describe("runNew", () => {
     });
 
     try {
-      const exitCode = await runNew(tempDir, "onboarding-v2");
+      await initRepo(tempDir);
+      const nestedDir = path.join(tempDir, "apps", "web");
+      await mkdir(nestedDir, { recursive: true });
+      cwdSpy.mockReturnValue(nestedDir);
+
+      const exitCode = await runNew("onboarding-v2");
 
       expect(exitCode).toBe(0);
-      await expect(readFile(path.join(tempDir, STATE_PATH), "utf8")).resolves.toContain('"active": []');
       await expect(readFile(path.join(tempDir, BETS_DIR, "onboarding-v2.md"), "utf8")).resolves.toContain(
         "default_action: extend",
       );
     } finally {
+      cwdSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
   });

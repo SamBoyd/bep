@@ -1,7 +1,8 @@
 import { initRepo } from "../fs/init";
 
-export async function runInit(rootDir: string): Promise<number> {
-  const result = await initRepo(rootDir);
+export async function runInit(): Promise<number> {
+  const cwd = process.cwd();
+  const result = await initRepo(cwd);
 
   if (result.alreadyInitialized) {
     console.log("BEP is already initialized.");
