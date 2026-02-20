@@ -120,7 +120,11 @@ BEP supports hook-based session tracking to reduce manual time logging friction 
 
 In v1, auto-tracking is focused on **Claude Code** hooks:
 - High-value hook events are logged (`UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `SessionEnd`)
+- Hook payloads are used to build attribution context (prompt/tool signals + current bet state)
+- `bep hook` delegates bet selection to Claude CLI and can auto-apply `start` / `stop` / `switch`
+- Low-confidence or failed attribution is non-blocking: BEP state is unchanged and uncertainty is logged
 - Events are logged under `bets/_logs/agent-sessions.jsonl`
+- Attribution decisions are logged under `bets/_logs/agent-attribution.jsonl`
 - No commit-count tracking in v1
 
 Agent support matrix in the init UX:

@@ -73,6 +73,7 @@ Update this map whenever directories, entrypoints, or core config locations chan
 │   ├── providers/         # Validation provider interfaces, registry, and adapters
 │   ├── fs/                # Filesystem/domain helpers (repo layout/state setup)
 │   ├── state/             # State read/write/validation helpers
+│   ├── tracking/          # Hook payload parsing, bet-selection context, and attribution logic
 │   └── ui/                # Interactive prompt flows/wizard helpers
 └── tests/                 # Jest test suites for units/commands
     ├── commands/          # Command-level behavior tests
@@ -81,5 +82,6 @@ Update this map whenever directories, entrypoints, or core config locations chan
     ├── hooks/             # Agent hook discovery/installer tests
     ├── providers/         # Provider adapter and setup tests
     ├── state/             # State module tests
+    ├── tracking/          # Bet attribution context/selector/decision tests
     └── ui/                # Wizard flow tests
 ```

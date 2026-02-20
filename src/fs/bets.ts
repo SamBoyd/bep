@@ -1,4 +1,4 @@
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
 import type { BetFile, BetFrontmatter } from "../bep/file";
@@ -56,6 +56,16 @@ export async function readBetFile(rootDir: string, idOrFileName: string): Promis
       data: parsed.data as BetFrontmatter,
     },
   };
+}
+
+export async function listBetMarkdownFiles(rootDir: string): Promise<string[]> {
+  const betsDir = path.join(rootDir, BETS_DIR);
+  const entries = await readdir(betsDir, { withFileTypes: true });
+
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".md") && !entry.name.startsWith("_"))
+    .map((entry) => entry.name)
+    .sort((a, b) => a.localeCompare(b));
 }
 
 export async function writeBetFile(rootDir: string, idOrFileName: string, bet: BetFile): Promise<void> {
