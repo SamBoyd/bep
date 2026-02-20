@@ -122,10 +122,16 @@ In v1, auto-tracking is focused on **Claude Code** hooks:
 - High-value hook events are logged (`UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `SessionEnd`)
 - Hook payloads are used to build attribution context (prompt/tool signals + current bet state)
 - `bep hook` delegates bet selection to Claude CLI and can auto-apply `start` / `stop` / `switch`
+- Cap checks run on every hook event for the attributed bet
+- Hard blocking is enforced only on `UserPromptSubmit` when attributed bet usage is at/over cap
+- Non-prompt over-cap events are logged for observability but are not hard-denied
 - Low-confidence or failed attribution is non-blocking: BEP state is unchanged and uncertainty is logged
 - Events are logged under `bets/_logs/agent-sessions.jsonl`
 - Attribution decisions are logged under `bets/_logs/agent-attribution.jsonl`
+- Over-cap detections are logged under `bets/_logs/agent-blocks.jsonl`
 - No commit-count tracking in v1
+
+Hard-block deny message includes the bet id, current usage vs cap, and unblock guidance (for example: extend `max_hours`/`max_calendar_days` or change bet status in `bets/<id>.md`).
 
 Agent support matrix in the init UX:
 - Claude Code: supported now

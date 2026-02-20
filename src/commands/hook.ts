@@ -5,6 +5,7 @@ import { parseHookStdin, readHookStdin } from "../hooks/events";
 import { isSupportedHookAgent } from "../hooks/types";
 import { buildBetSelectionContext } from "../tracking/context";
 import { applySelectionDecision } from "../tracking/decision";
+import { evaluateCapGate } from "../tracking/enforcement";
 import { selectBetWithClaude } from "../tracking/selector";
 import type { AppliedDecisionResult, HookEvent, SelectionResult } from "../tracking/types";
 
@@ -29,11 +30,27 @@ type AttributionLogEntry = {
   error: string | null;
 };
 
+type BlockLogEntry = {
+  at: string;
+  agent: "claude-code";
+  event: HookEvent;
+  session_id?: string;
+  bet_id?: string;
+  cap_type?: "max_hours" | "max_calendar_days";
+  cap_value?: number;
+  used_value?: number;
+  percent_used?: number;
+  over_cap: boolean;
+  enforced: boolean;
+  reason: string;
+};
+
 type HookDependencies = {
   readInput: () => Promise<string>;
   select: typeof selectBetWithClaude;
   apply: typeof applySelectionDecision;
   append: typeof appendFile;
+  writeOutput?: (output: string) => void | boolean;
 };
 
 const defaultDeps: HookDependencies = {
@@ -41,6 +58,7 @@ const defaultDeps: HookDependencies = {
   select: selectBetWithClaude,
   apply: applySelectionDecision,
   append: appendFile,
+  writeOutput: (output: string) => process.stdout.write(output),
 };
 
 function isHookEvent(value: string): value is HookEvent {
@@ -87,12 +105,16 @@ export async function runHook(agent: string, event: string, deps: HookDependenci
   }
 
   const at = new Date().toISOString();
+  const writeOutput = deps.writeOutput ?? defaultDeps.writeOutput;
   const rawInput = await deps.readInput().catch(() => "");
   const payload = parseHookStdin(rawInput, event);
 
   let selection: SelectionResult;
   let applied: AppliedDecisionResult | null = null;
   let error: string | null = null;
+  let promptDenied = false;
+  let promptDenyReason: string | null = null;
+  let blockLine: BlockLogEntry | null = null;
 
   try {
     const context = await buildBetSelectionContext(found.rootDir, event, payload);
@@ -100,9 +122,32 @@ export async function runHook(agent: string, event: string, deps: HookDependenci
     selection = await deps.select(context, { debugLogPath });
 
     if (selection.ok) {
-      applied = await deps.apply(context, selection.decision);
-      if (applied.error) {
-        error = applied.error;
+      const gate = await evaluateCapGate(found.rootDir, context, selection.decision);
+      if (gate.overCap) {
+        blockLine = {
+          at,
+          agent,
+          event,
+          session_id: payload?.sessionId,
+          bet_id: gate.targetBetId,
+          cap_type: gate.capType,
+          cap_value: gate.capValue,
+          used_value: gate.usedValue,
+          percent_used: gate.percentUsed,
+          over_cap: true,
+          enforced: event === "user-prompt-submit",
+          reason: gate.reason,
+        };
+      }
+
+      if (event === "user-prompt-submit" && gate.overCap) {
+        promptDenied = true;
+        promptDenyReason = `Bet '${gate.targetBetId ?? "unknown"}' is at cap (${(gate.usedValue ?? 0).toFixed(2)} ${gate.capType === "max_calendar_days" ? "days" : "hours"} / ${(gate.capValue ?? 0).toFixed(2)} ${gate.capType === "max_calendar_days" ? "days" : "hours"}, ${(gate.percentUsed ?? 0).toFixed(2)}%). Update bets/${gate.targetBetId}.md to extend cap or change status before continuing.`;
+      } else {
+        applied = await deps.apply(context, selection.decision);
+        if (applied.error) {
+          error = applied.error;
+        }
       }
     } else {
       error = selection.error;
@@ -141,10 +186,25 @@ export async function runHook(agent: string, event: string, deps: HookDependenci
 
   const attributionPath = path.join(found.rootDir, LOGS_DIR, "agent-attribution.jsonl");
   const sessionPath = path.join(found.rootDir, LOGS_DIR, "agent-sessions.jsonl");
+  const blocksPath = path.join(found.rootDir, LOGS_DIR, "agent-blocks.jsonl");
+
+  if (blockLine) {
+    await deps.append(blocksPath, `${JSON.stringify(blockLine)}\n`, "utf8");
+  }
 
   await deps.append(attributionPath, `${JSON.stringify(attributionLine)}\n`, "utf8");
   await deps.append(sessionPath, `${JSON.stringify(sessionLine)}\n`, "utf8");
 
-  console.log('{}') // empty output on success is required
+  if (event === "user-prompt-submit" && promptDenied) {
+    writeOutput?.(JSON.stringify({ continue: false, stopReason: promptDenyReason ?? "Bet is hard-blocked at cap." }));
+    return 0;
+  }
+
+  if (event === "user-prompt-submit") {
+    writeOutput?.(JSON.stringify({ continue: true }));
+    return 0;
+  }
+
+  writeOutput?.(JSON.stringify({ continue: true }));
   return 0;
 }

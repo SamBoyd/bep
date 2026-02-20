@@ -226,4 +226,142 @@ describe("runHook", () => {
       await rm(tempDir, { recursive: true, force: true });
     }
   });
+
+  test("hard-denies user-prompt-submit when attributed bet is at cap", async () => {
+    const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+    const output: string[] = [];
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        `---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 1\n---\n`,
+        "utf8",
+      );
+      await writeFile(path.join(tempDir, LOGS_DIR, "landing-page.jsonl"), `${JSON.stringify({ duration_seconds: 3600 })}\n`, "utf8");
+
+      const applySpy = jest.fn().mockResolvedValue({
+        applied: true,
+        appliedSteps: ["start:landing-page"],
+        decision: { action: "start", bet_id: "landing-page", confidence: 0.95, reason: "match" },
+      });
+
+      const exitCode = await runHook("claude-code", "user-prompt-submit", {
+        readInput: async () => JSON.stringify({ session_id: "s-block" }),
+        select: async (): Promise<SelectionResult> => ({
+          ok: true,
+          rawText: "",
+          decision: { action: "start", bet_id: "landing-page", confidence: 0.95, reason: "match" },
+        }),
+        apply: applySpy,
+        append: appendFile,
+        writeOutput: (value: string) => {
+          output.push(value);
+        },
+      });
+
+      const blockRaw = await readFile(path.join(tempDir, LOGS_DIR, "agent-blocks.jsonl"), "utf8");
+      const blockEntry = JSON.parse(blockRaw.trim());
+
+      expect(exitCode).toBe(0);
+      expect(applySpy).not.toHaveBeenCalled();
+      expect(blockEntry.enforced).toBe(true);
+      expect(output[0]).toContain("\"continue\":false");
+      expect(output[0]).toContain("at cap");
+    } finally {
+      cwdSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("logs over-cap on non-prompt events but continues apply", async () => {
+    const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+    const output: string[] = [];
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        `---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 1\n---\n`,
+        "utf8",
+      );
+      await writeFile(path.join(tempDir, LOGS_DIR, "landing-page.jsonl"), `${JSON.stringify({ duration_seconds: 3600 })}\n`, "utf8");
+
+      const applySpy = jest.fn().mockResolvedValue({
+        applied: true,
+        appliedSteps: ["keep"],
+        decision: { action: "keep", bet_id: "landing-page", confidence: 0.95, reason: "match" },
+      });
+
+      const exitCode = await runHook("claude-code", "post-tool-use", {
+        readInput: async () => JSON.stringify({ session_id: "s-nonprompt" }),
+        select: async (): Promise<SelectionResult> => ({
+          ok: true,
+          rawText: "",
+          decision: { action: "keep", bet_id: "landing-page", confidence: 0.95, reason: "match" },
+        }),
+        apply: applySpy,
+        append: appendFile,
+        writeOutput: (value: string) => {
+          output.push(value);
+        },
+      });
+
+      const blockRaw = await readFile(path.join(tempDir, LOGS_DIR, "agent-blocks.jsonl"), "utf8");
+      const blockEntry = JSON.parse(blockRaw.trim());
+
+      expect(exitCode).toBe(0);
+      expect(applySpy).toHaveBeenCalled();
+      expect(blockEntry.enforced).toBe(false);
+      expect(output[0]).toBe("{\"continue\":true}");
+    } finally {
+      cwdSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("emits allow response for below-cap user-prompt-submit", async () => {
+    const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+    const output: string[] = [];
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        `---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 10\n---\n`,
+        "utf8",
+      );
+      await writeFile(path.join(tempDir, LOGS_DIR, "landing-page.jsonl"), `${JSON.stringify({ duration_seconds: 1800 })}\n`, "utf8");
+
+      const applySpy = jest.fn().mockResolvedValue({
+        applied: true,
+        appliedSteps: ["start:landing-page"],
+        decision: { action: "start", bet_id: "landing-page", confidence: 0.95, reason: "match" },
+      });
+
+      const exitCode = await runHook("claude-code", "user-prompt-submit", {
+        readInput: async () => JSON.stringify({ session_id: "s-allow" }),
+        select: async (): Promise<SelectionResult> => ({
+          ok: true,
+          rawText: "",
+          decision: { action: "start", bet_id: "landing-page", confidence: 0.95, reason: "match" },
+        }),
+        apply: applySpy,
+        append: appendFile,
+        writeOutput: (value: string) => {
+          output.push(value);
+        },
+      });
+
+      expect(exitCode).toBe(0);
+      expect(applySpy).toHaveBeenCalled();
+      expect(output[0]).toBe("{\"continue\":true}");
+    } finally {
+      cwdSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
 });
