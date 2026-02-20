@@ -3,6 +3,7 @@ import {
   runNewWizard,
   type ActionPromptResult,
   type LeadingIndicatorTypePromptResult,
+  type MarkdownSectionPromptResult,
   type NumberPromptResult,
   type WizardPromptClient,
 } from "../../src/ui/newWizard";
@@ -14,7 +15,11 @@ type ScriptedStep =
   | { type: "action"; result: ActionPromptResult }
   | { type: "leadingIndicatorType"; result: LeadingIndicatorTypePromptResult }
   | { type: "manualOperator"; result: ManualOperatorPromptResult }
-  | { type: "manualTarget"; result: ManualTargetPromptResult };
+  | { type: "manualTarget"; result: ManualTargetPromptResult }
+  | { type: "primaryAssumption"; result: MarkdownSectionPromptResult }
+  | { type: "rationale"; result: MarkdownSectionPromptResult }
+  | { type: "validationPlan"; result: MarkdownSectionPromptResult }
+  | { type: "notes"; result: MarkdownSectionPromptResult };
 
 function createScriptedClient(steps: ScriptedStep[]): WizardPromptClient {
   return {
@@ -60,6 +65,34 @@ function createScriptedClient(steps: ScriptedStep[]): WizardPromptClient {
       }
       return next.result;
     },
+    async promptPrimaryAssumption() {
+      const next = steps.shift();
+      if (!next || next.type !== "primaryAssumption") {
+        throw new Error("Unexpected primary assumption prompt");
+      }
+      return next.result;
+    },
+    async promptRationale() {
+      const next = steps.shift();
+      if (!next || next.type !== "rationale") {
+        throw new Error("Unexpected rationale prompt");
+      }
+      return next.result;
+    },
+    async promptValidationPlan() {
+      const next = steps.shift();
+      if (!next || next.type !== "validationPlan") {
+        throw new Error("Unexpected validation plan prompt");
+      }
+      return next.result;
+    },
+    async promptNotes() {
+      const next = steps.shift();
+      if (!next || next.type !== "notes") {
+        throw new Error("Unexpected notes prompt");
+      }
+      return next.result;
+    },
   };
 }
 
@@ -72,6 +105,10 @@ describe("runNewWizard", () => {
       { type: "leadingIndicatorType", result: { kind: "value", value: "manual" } },
       { type: "manualOperator", result: { kind: "value", value: "gte" } },
       { type: "manualTarget", result: { kind: "value", value: 20 } },
+      { type: "primaryAssumption", result: { kind: "value", value: "Traffic from SEO can convert to trials." } },
+      { type: "rationale", result: { kind: "value", value: "SEO channel has compounding returns and low CAC." } },
+      { type: "validationPlan", result: { kind: "value", value: "Measure trial signups from organic for 2 weeks." } },
+      { type: "notes", result: { kind: "value", value: "Coordinate with content launch timeline." } },
     ]);
 
     const result = await runNewWizard(client);
@@ -87,6 +124,10 @@ describe("runNewWizard", () => {
           operator: "gte",
           target: 20,
         },
+        primaryAssumption: "Traffic from SEO can convert to trials.",
+        rationale: "SEO channel has compounding returns and low CAC.",
+        validationPlan: "Measure trial signups from organic for 2 weeks.",
+        notes: "Coordinate with content launch timeline.",
       },
     });
   });
@@ -103,6 +144,10 @@ describe("runNewWizard", () => {
       { type: "leadingIndicatorType", result: { kind: "value", value: "manual" } },
       { type: "manualOperator", result: { kind: "value", value: "gt" } },
       { type: "manualTarget", result: { kind: "value", value: 10 } },
+      { type: "primaryAssumption", result: { kind: "value", value: "Users will finish onboarding with fewer drop-offs." } },
+      { type: "rationale", result: { kind: "value", value: "Current onboarding completion is below target." } },
+      { type: "validationPlan", result: { kind: "value", value: "Track onboarding completion rate weekly." } },
+      { type: "notes", result: { kind: "value", value: "" } },
     ]);
 
     const result = await runNewWizard(client, () => undefined);
@@ -118,6 +163,10 @@ describe("runNewWizard", () => {
           operator: "gt",
           target: 10,
         },
+        primaryAssumption: "Users will finish onboarding with fewer drop-offs.",
+        rationale: "Current onboarding completion is below target.",
+        validationPlan: "Track onboarding completion rate weekly.",
+        notes: "",
       },
     });
   });

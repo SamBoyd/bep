@@ -50,6 +50,10 @@ export async function runNew(id: string): Promise<number> {
     leadingIndicator: wizardResult.values.leadingIndicator,
     maxHours: wizardResult.values.maxHours,
     maxCalendarDays: wizardResult.values.maxCalendarDays,
+    primaryAssumption: wizardResult.values.primaryAssumption,
+    rationale: wizardResult.values.rationale,
+    validationPlan: wizardResult.values.validationPlan,
+    notes: wizardResult.values.notes,
   });
 
   try {

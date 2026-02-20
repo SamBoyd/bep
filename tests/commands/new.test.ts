@@ -35,6 +35,10 @@ describe("runNew", () => {
           operator: "gte",
           target: 20,
         },
+        primaryAssumption: "A focused landing page will increase demo requests.",
+        rationale: "Current page does not communicate value clearly.",
+        validationPlan: "Track weekly demo request lift after launch.",
+        notes: "Coordinate copy review with product marketing.",
       },
     });
 
@@ -51,6 +55,10 @@ describe("runNew", () => {
       expect(content).toContain("leading_indicator:");
       expect(content).toContain("operator: gte");
       expect(content).toContain("target: 20");
+      expect(content).toContain("A focused landing page will increase demo requests.");
+      expect(content).toContain("Current page does not communicate value clearly.");
+      expect(content).toContain("Track weekly demo request lift after launch.");
+      expect(content).toContain("Coordinate copy review with product marketing.");
       expect(content).not.toContain("max_calendar_days:");
       expect(logSpy).toHaveBeenCalledWith("\nCreated bets/landing-page.md.");
     } finally {
@@ -161,6 +169,10 @@ describe("runNew", () => {
           operator: "lte",
           target: 5,
         },
+        primaryAssumption: "Onboarding friction is caused by unclear setup steps.",
+        rationale: "Activation stalls after account creation.",
+        validationPlan: "Measure setup completion rate in first session.",
+        notes: "",
       },
     });
 

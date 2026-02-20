@@ -10,6 +10,10 @@ export type NewBetTemplateInput = {
   leadingIndicator: LeadingIndicator;
   maxHours?: number;
   maxCalendarDays?: number;
+  primaryAssumption: string;
+  rationale: string;
+  validationPlan: string;
+  notes: string;
 };
 
 export function renderNewBetMarkdown(input: NewBetTemplateInput): string {
@@ -34,11 +38,19 @@ export function renderNewBetMarkdown(input: NewBetTemplateInput): string {
     "",
     "## 1. Primary Assumption",
     "",
+    input.primaryAssumption,
+    "",
     "## 2. Rationale",
+    "",
+    input.rationale,
     "",
     "## 3. Validation Plan",
     "",
+    input.validationPlan,
+    "",
     "## 4. Notes",
+    "",
+    input.notes,
     "",
   ].join("\n");
 

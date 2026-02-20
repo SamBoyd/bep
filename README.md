@@ -183,6 +183,10 @@ Runs an interactive wizard to collect:
 - `leading_indicator.type` (currently `manual`)
 - `leading_indicator.operator` (one of `lt`, `lte`, `eq`, `gte`, `gt`)
 - `leading_indicator.target` (required numeric threshold)
+- `Primary Assumption` (required markdown text)
+- `Rationale` (required markdown text)
+- `Validation Plan` (required markdown text)
+- `Notes` (optional markdown text)
 
 Behavior:
 - `id` must be unique: if `bets/<id>.md` already exists, the command fails.

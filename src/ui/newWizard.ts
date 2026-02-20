@@ -30,11 +30,20 @@ export type LeadingIndicatorTypePromptResult =
   | { kind: "back" }
   | { kind: "cancel" };
 
+export type MarkdownSectionPromptResult =
+  | { kind: "value"; value: string }
+  | { kind: "back" }
+  | { kind: "cancel" };
+
 export type NewWizardValues = {
   maxHours?: number;
   maxCalendarDays?: number;
   defaultAction: DefaultAction;
   leadingIndicator: LeadingIndicator;
+  primaryAssumption: string;
+  rationale: string;
+  validationPlan: string;
+  notes: string;
 };
 
 export type NewWizardResult = { cancelled: true } | { cancelled: false; values: NewWizardValues };
@@ -54,11 +63,25 @@ export type WizardPromptClient = ManualSetupPromptClient & {
     initialValue?: LeadingIndicatorType;
     allowBack: boolean;
   }): Promise<LeadingIndicatorTypePromptResult>;
+  promptPrimaryAssumption(params: { initialValue?: string; allowBack: boolean }): Promise<MarkdownSectionPromptResult>;
+  promptRationale(params: { initialValue?: string; allowBack: boolean }): Promise<MarkdownSectionPromptResult>;
+  promptValidationPlan(params: { initialValue?: string; allowBack: boolean }): Promise<MarkdownSectionPromptResult>;
+  promptNotes(params: { initialValue?: string; allowBack: boolean }): Promise<MarkdownSectionPromptResult>;
 };
 
 type WizardLog = (message: string) => void;
 
-const STEP_ORDER = ["cap_type", "cap_value", "default_action", "leading_indicator_type", "leading_indicator_setup"] as const;
+const STEP_ORDER = [
+  "cap_type",
+  "cap_value",
+  "default_action",
+  "leading_indicator_type",
+  "leading_indicator_setup",
+  "primary_assumption",
+  "rationale",
+  "validation_plan",
+  "notes",
+] as const;
 type Step = (typeof STEP_ORDER)[number];
 
 type MutableWizardValues = {
@@ -67,6 +90,10 @@ type MutableWizardValues = {
   defaultAction?: DefaultAction;
   leadingIndicatorType?: LeadingIndicatorType;
   leadingIndicator?: LeadingIndicator;
+  primaryAssumption?: string;
+  rationale?: string;
+  validationPlan?: string;
+  notes?: string;
 };
 
 export async function runNewWizard(
@@ -75,7 +102,7 @@ export async function runNewWizard(
 ): Promise<NewWizardResult> {
   let stepIndex = 0;
   const values: MutableWizardValues = {};
-  
+
   while (stepIndex < STEP_ORDER.length) {
     const step: Step = STEP_ORDER[stepIndex];
 
@@ -171,38 +198,127 @@ export async function runNewWizard(
       continue;
     }
 
-    if (!values.leadingIndicatorType) {
-      return { cancelled: true };
+    if (step === "leading_indicator_setup") {
+      if (!values.leadingIndicatorType) {
+        return { cancelled: true };
+      }
+
+      const module = resolveProviderModule(values.leadingIndicatorType);
+      if (!module || !module.setup) {
+        return { cancelled: true };
+      }
+
+      const setupResult = await module.setup.collectNewWizardInput({
+        allowBack: stepIndex > 0,
+        initialValue:
+          values.leadingIndicator && values.leadingIndicator.type === values.leadingIndicatorType
+            ? values.leadingIndicator
+            : undefined,
+        client,
+      });
+
+      if (setupResult.kind === "cancel") {
+        return { cancelled: true };
+      }
+
+      if (setupResult.kind === "back") {
+        stepIndex = Math.max(0, stepIndex - 1);
+        continue;
+      }
+
+      values.leadingIndicator = setupResult.value;
+      stepIndex += 1;
+      continue;
     }
 
-    const module = resolveProviderModule(values.leadingIndicatorType);
-    if (!module || !module.setup) {
-      return { cancelled: true };
+    if (step === "primary_assumption") {
+      const result = await client.promptPrimaryAssumption({
+        initialValue: values.primaryAssumption,
+        allowBack: stepIndex > 0,
+      });
+
+      if (result.kind === "cancel") {
+        return { cancelled: true };
+      }
+
+      if (result.kind === "back") {
+        stepIndex = Math.max(0, stepIndex - 1);
+        continue;
+      }
+
+      values.primaryAssumption = result.value;
+      stepIndex += 1;
+      continue;
     }
 
-    const setupResult = await module.setup.collectNewWizardInput({
+    if (step === "rationale") {
+      const result = await client.promptRationale({
+        initialValue: values.rationale,
+        allowBack: stepIndex > 0,
+      });
+
+      if (result.kind === "cancel") {
+        return { cancelled: true };
+      }
+
+      if (result.kind === "back") {
+        stepIndex = Math.max(0, stepIndex - 1);
+        continue;
+      }
+
+      values.rationale = result.value;
+      stepIndex += 1;
+      continue;
+    }
+
+    if (step === "validation_plan") {
+      const result = await client.promptValidationPlan({
+        initialValue: values.validationPlan,
+        allowBack: stepIndex > 0,
+      });
+
+      if (result.kind === "cancel") {
+        return { cancelled: true };
+      }
+
+      if (result.kind === "back") {
+        stepIndex = Math.max(0, stepIndex - 1);
+        continue;
+      }
+
+      values.validationPlan = result.value;
+      stepIndex += 1;
+      continue;
+    }
+
+    const result = await client.promptNotes({
+      initialValue: values.notes,
       allowBack: stepIndex > 0,
-      initialValue:
-        values.leadingIndicator && values.leadingIndicator.type === values.leadingIndicatorType
-          ? values.leadingIndicator
-          : undefined,
-      client,
     });
 
-    if (setupResult.kind === "cancel") {
+    if (result.kind === "cancel") {
       return { cancelled: true };
     }
 
-    if (setupResult.kind === "back") {
+    if (result.kind === "back") {
       stepIndex = Math.max(0, stepIndex - 1);
       continue;
     }
 
-    values.leadingIndicator = setupResult.value;
+    values.notes = result.value;
     stepIndex += 1;
   }
 
-  if (!values.defaultAction || !values.capType || typeof values.capValue !== "number" || !values.leadingIndicator) {
+  if (
+    !values.defaultAction ||
+    !values.capType ||
+    typeof values.capValue !== "number" ||
+    !values.leadingIndicator ||
+    !values.primaryAssumption ||
+    !values.rationale ||
+    !values.validationPlan ||
+    values.notes === undefined
+  ) {
     return { cancelled: true };
   }
 
@@ -216,6 +332,10 @@ export async function runNewWizard(
       maxCalendarDays,
       defaultAction: values.defaultAction,
       leadingIndicator: values.leadingIndicator,
+      primaryAssumption: values.primaryAssumption,
+      rationale: values.rationale,
+      validationPlan: values.validationPlan,
+      notes: values.notes,
     },
   };
 }
@@ -396,6 +516,120 @@ export function createClackPromptClient(): WizardPromptClient {
       }
 
       return { kind: "value", value: Number(trimmed) };
+    },
+
+    async promptPrimaryAssumption({ initialValue, allowBack }): Promise<MarkdownSectionPromptResult> {
+      const backHint = allowBack ? ` ${DIM}(type b to go back)${RESET}` : "";
+      const value = await text({
+        message: `Primary assumption (required).${backHint}`,
+        initialValue,
+        validate(rawValue) {
+          const trimmed = rawValue.trim();
+          if (allowBack && trimmed.toLowerCase() === "b") {
+            return;
+          }
+
+          if (trimmed.length === 0) {
+            return "Enter a value.";
+          }
+        },
+      });
+
+      if (isCancel(value)) {
+        return { kind: "cancel" };
+      }
+
+      const trimmed = value.trim();
+      if (allowBack && trimmed.toLowerCase() === "b") {
+        return { kind: "back" };
+      }
+
+      return { kind: "value", value: trimmed };
+    },
+
+    async promptRationale({ initialValue, allowBack }): Promise<MarkdownSectionPromptResult> {
+      const backHint = allowBack ? ` ${DIM}(type b to go back)${RESET}` : "";
+      const value = await text({
+        message: `Rationale (required).${backHint}`,
+        initialValue,
+        validate(rawValue) {
+          const trimmed = rawValue.trim();
+          if (allowBack && trimmed.toLowerCase() === "b") {
+            return;
+          }
+
+          if (trimmed.length === 0) {
+            return "Enter a value.";
+          }
+        },
+      });
+
+      if (isCancel(value)) {
+        return { kind: "cancel" };
+      }
+
+      const trimmed = value.trim();
+      if (allowBack && trimmed.toLowerCase() === "b") {
+        return { kind: "back" };
+      }
+
+      return { kind: "value", value: trimmed };
+    },
+
+    async promptValidationPlan({ initialValue, allowBack }): Promise<MarkdownSectionPromptResult> {
+      const backHint = allowBack ? ` ${DIM}(type b to go back)${RESET}` : "";
+      const value = await text({
+        message: `Validation plan (required).${backHint}`,
+        initialValue,
+        validate(rawValue) {
+          const trimmed = rawValue.trim();
+          if (allowBack && trimmed.toLowerCase() === "b") {
+            return;
+          }
+
+          if (trimmed.length === 0) {
+            return "Enter a value.";
+          }
+        },
+      });
+
+      if (isCancel(value)) {
+        return { kind: "cancel" };
+      }
+
+      const trimmed = value.trim();
+      if (allowBack && trimmed.toLowerCase() === "b") {
+        return { kind: "back" };
+      }
+
+      return { kind: "value", value: trimmed };
+    },
+
+    async promptNotes({ initialValue, allowBack }): Promise<MarkdownSectionPromptResult> {
+      const backHint = allowBack ? ` ${DIM}(type b to go back)${RESET}` : "";
+      const value = await text({
+        message: `Notes (optional).${backHint}`,
+        initialValue,
+        validate(rawValue) {
+          const trimmed = (rawValue || '').trim();
+          if (allowBack && trimmed.toLowerCase() === "b") {
+            return;
+          }
+
+          return undefined;
+        },
+      });
+
+      if (isCancel(value)) {
+        return { kind: "cancel" };
+      }
+
+      const trimmed = (value || '').trim();
+      if (allowBack && trimmed.toLowerCase() === "b") {
+        return { kind: "back" };
+      }
+
+      return { kind: "value", value: trimmed };
     },
   };
 }
