@@ -144,8 +144,3 @@ These colors are intended to carry across docs, CLI output themes, and future UI
 - Build tooling: `tsup`
 - Test framework: `jest` (`ts-jest`)
 - Package format: CommonJS (`"type": "commonjs"`)
-
----
-
-## License
-MIT
