@@ -23,7 +23,7 @@ export async function readProviderConfig(rootDir: string): Promise<ProviderConfi
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return {
         ok: false,
-        error: `Missing provider config at ${PROVIDER_CONFIG_PATH}. Create it from .bep.providers.example.json.`,
+        error: `Missing provider config at ${PROVIDER_CONFIG_PATH}. Run 'bep init' to scaffold it.`,
       };
     }
 

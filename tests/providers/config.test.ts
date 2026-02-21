@@ -20,7 +20,7 @@ describe("readProviderConfig", () => {
 
       expect(result).toEqual({
         ok: false,
-        error: `Missing provider config at ${PROVIDER_CONFIG_PATH}. Create it from .bep.providers.example.json.`,
+        error: `Missing provider config at ${PROVIDER_CONFIG_PATH}. Run 'bep init' to scaffold it.`,
       });
     } finally {
       await rm(tempDir, { recursive: true, force: true });

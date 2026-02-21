@@ -10,6 +10,7 @@ import {
   findInitializedRepo,
   initRepo,
 } from "../../src/fs/init";
+import { PROVIDER_CONFIG_PATH } from "../../src/providers/config";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-init-test-"));
@@ -23,10 +24,19 @@ describe("initRepo", () => {
       const result = await initRepo(tempDir);
 
       expect(result.alreadyInitialized).toBe(false);
-      expect(result.createdPaths).toEqual(expect.arrayContaining([BETS_DIR, LOGS_DIR, EVIDENCE_DIR, STATE_PATH]));
+      expect(result.createdPaths).toEqual(
+        expect.arrayContaining([BETS_DIR, LOGS_DIR, EVIDENCE_DIR, STATE_PATH, PROVIDER_CONFIG_PATH]),
+      );
 
       const stateFile = await readFile(path.join(tempDir, STATE_PATH), "utf8");
       expect(JSON.parse(stateFile)).toEqual({ active: [] });
+
+      const providerFile = await readFile(path.join(tempDir, PROVIDER_CONFIG_PATH), "utf8");
+      expect(JSON.parse(providerFile)).toEqual({
+        mixpanel: {
+          service_account_creds: "<serviceaccount_username>:<serviceaccount_secret>",
+        },
+      });
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -46,6 +56,43 @@ describe("initRepo", () => {
       expect(result.alreadyInitialized).toBe(true);
       expect(result.createdPaths).toHaveLength(0);
       expect(JSON.parse(persisted)).toEqual(existingState);
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("adds .bep.providers.json to .gitignore when in a git repository", async () => {
+    const tempDir = await createTempDir();
+
+    try {
+      await mkdir(path.join(tempDir, ".git"), { recursive: true });
+      await writeFile(path.join(tempDir, ".gitignore"), "node_modules\n", "utf8");
+
+      await initRepo(tempDir);
+      const gitignore = await readFile(path.join(tempDir, ".gitignore"), "utf8");
+
+      expect(gitignore).toContain(".bep.providers.json");
+      expect(gitignore.match(/\.bep\.providers\.json/g)).toHaveLength(1);
+
+      await initRepo(tempDir);
+      const second = await readFile(path.join(tempDir, ".gitignore"), "utf8");
+      expect(second.match(/\.bep\.providers\.json/g)).toHaveLength(1);
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("creates .gitignore with provider entry when git repository has no .gitignore", async () => {
+    const tempDir = await createTempDir();
+
+    try {
+      await mkdir(path.join(tempDir, ".git"), { recursive: true });
+
+      const result = await initRepo(tempDir);
+      const gitignore = await readFile(path.join(tempDir, ".gitignore"), "utf8");
+
+      expect(result.createdPaths).toContain(".gitignore");
+      expect(gitignore).toBe(".bep.providers.json\n");
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }

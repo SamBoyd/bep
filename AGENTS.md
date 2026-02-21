@@ -65,7 +65,6 @@ Update this map whenever directories, entrypoints, or core config locations chan
 .
 ├── AGENTS.md              # Agent instructions and project conventions
 ├── README.md              # Product-facing overview and CLI contract
-├── .bep.providers.example.json # Example provider credential config (copy to .bep.providers.json locally)
 ├── package.json           # NPM metadata, scripts, dependencies, bin mapping
 ├── jest.config.cjs        # Jest configuration
 ├── tsconfig.json          # TypeScript compiler configuration
