@@ -1,6 +1,8 @@
 import { isCancel, select, text } from "@clack/prompts";
 import { listRegisteredProviderTypes, resolveProviderModule } from "../providers/registry";
 import type { ManualSetupPromptClient, ManualOperatorPromptResult, ManualTargetPromptResult } from "../providers/manual";
+import { createClackMixpanelSetupPromptClient } from "../providers/mixpanel";
+import type { MixpanelSetupPromptClient } from "../providers/mixpanel";
 import type { LeadingIndicator, LeadingIndicatorType, ManualComparisonOperator } from "../providers/types";
 import type { DefaultAction } from "../bep/template";
 
@@ -48,7 +50,8 @@ export type NewWizardValues = {
 
 export type NewWizardResult = { cancelled: true } | { cancelled: false; values: NewWizardValues };
 
-export type WizardPromptClient = ManualSetupPromptClient & {
+export type WizardPromptClient = ManualSetupPromptClient &
+  MixpanelSetupPromptClient & {
   promptCapType(params: {
     initialValue?: OptionalNumberField;
     allowBack: boolean;
@@ -341,6 +344,8 @@ export async function runNewWizard(
 }
 
 export function createClackPromptClient(): WizardPromptClient {
+  const mixpanelPromptClient = createClackMixpanelSetupPromptClient();
+
   return {
     async promptCapType({ initialValue, allowBack }) {
       const options: Array<{ label: string; value: OptionalNumberField | typeof BACK_VALUE }> = [
@@ -516,6 +521,26 @@ export function createClackPromptClient(): WizardPromptClient {
       }
 
       return { kind: "value", value: Number(trimmed) };
+    },
+
+    async promptMixpanelProjectId({ initialValue, allowBack }) {
+      return mixpanelPromptClient.promptMixpanelProjectId({ initialValue, allowBack });
+    },
+
+    async promptMixpanelWorkspaceId({ initialValue, allowBack }) {
+      return mixpanelPromptClient.promptMixpanelWorkspaceId({ initialValue, allowBack });
+    },
+
+    async promptMixpanelBookmarkId({ initialValue, allowBack }) {
+      return mixpanelPromptClient.promptMixpanelBookmarkId({ initialValue, allowBack });
+    },
+
+    async promptMixpanelOperator({ initialValue, allowBack }) {
+      return mixpanelPromptClient.promptMixpanelOperator({ initialValue, allowBack });
+    },
+
+    async promptMixpanelTarget({ initialValue, allowBack }) {
+      return mixpanelPromptClient.promptMixpanelTarget({ initialValue, allowBack });
     },
 
     async promptPrimaryAssumption({ initialValue, allowBack }): Promise<MarkdownSectionPromptResult> {

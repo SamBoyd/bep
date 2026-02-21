@@ -105,7 +105,7 @@ function formatValidation(snapshot: ValidationSnapshot): string {
 
   const candidate = leadingIndicator as { type?: unknown; operator?: unknown; target?: unknown };
   if (
-    candidate.type === "manual" &&
+    (candidate.type === "manual" || candidate.type === "mixpanel") &&
     typeof candidate.target === "number" &&
     Number.isFinite(candidate.target) &&
     (candidate.operator === "lt" ||

@@ -180,7 +180,7 @@ Runs an interactive wizard to collect:
 - one cap type: `max_hours` or `max_calendar_days`
 - a required numeric value for the chosen cap type
 - `default_action` (`kill` / `narrow` / `pivot` / `extend`)
-- `leading_indicator.type` (currently `manual`)
+- `leading_indicator.type` (`manual` or `mixpanel`)
 - `leading_indicator.operator` (one of `lt`, `lte`, `eq`, `gte`, `gt`)
 - `leading_indicator.target` (required numeric threshold)
 - `Primary Assumption` (required markdown text)
@@ -227,8 +227,44 @@ Runs an interactive manual check:
 - compares observed value vs `leading_indicator.target` using `leading_indicator.operator`
 - writes a snapshot to `bets/_evidence/<id>.json` including the comparison result
 
-This v0 flow captures evidence and evaluates pass/fail for manual numeric checks.
+For Mixpanel checks:
+- set `leading_indicator.type: mixpanel` with `project_id`, `workspace_id`, `bookmark_id`, `operator`, and `target`
+- create `.bep.providers.json` in repo root with `mixpanel.service_account_creds`
+- `bep check <id>` fetches the saved insight metric from Mixpanel, evaluates threshold pass/fail, and writes evidence
+- extract ids from report URL format:
+  `https://mixpanel.com/project/<YOUR_PROJECT_ID>/view/<YOUR_WORKSPACE_ID>/app/boards#id=12345&editor-card-id=%22report-<YOUR_BOOKMARK_ID>%22`
+
+This flow captures evidence and evaluates pass/fail for provider-backed numeric checks.
 Validation is dispatched through a provider registry. Unknown `leading_indicator.type` values fail fast with an invalid-config error.
+
+Example provider config (do not commit secrets):
+```json
+{
+  "mixpanel": {
+    "service_account_creds": "<serviceaccount_username>:<serviceaccount_secret>"
+  }
+}
+```
+
+Use `.bep.providers.example.json` as a starting template.
+
+### Mixpanel report setup for BEP
+When creating the Mixpanel report used by BEP validation:
+- build the report as a **Metric** (single value), not a graph
+- ensure the report resolves to one numeric result for the selected date range
+- avoid multi-series or multi-bucket chart configurations for this BEP report
+
+Why this matters:
+- `bep check` compares one observed value against `leading_indicator.target`
+- graph-style responses often return multiple values, which are not valid for threshold comparison
+
+To wire a report into BEP, copy ids from the Mixpanel report URL:
+- `project_id` from `/project/<PROJECT_ID>/...`
+- `workspace_id` from `/view/<WORKSPACE_ID>/...`
+- `bookmark_id` from `editor-card-id=%22report-<BOOKMARK_ID>%22`
+
+Example URL pattern:
+`https://mixpanel.com/project/<YOUR_PROJECT_ID>/view/<YOUR_WORKSPACE_ID>/app/boards#id=12345&editor-card-id=%22report-<YOUR_BOOKMARK_ID>%22`
 
 ### Summarize current bets
 ```bash
@@ -255,6 +291,7 @@ Validation providers are modular:
 
 Current registered provider:
 - `manual`
+- `mixpanel` (saved insight/report id)
 
 Validation sources under consideration (to be added incrementally as usage feedback arrives):
 - PostHog, Mixpanel, Amplitude
@@ -270,6 +307,7 @@ The system should surface evidence and compare to the declared threshold; it sho
 - Implement `bep init/new/status` with zero external dependencies
 - Implement exposure logging (sessions first; hours derived)
 - Implement manual `bep check` evidence capture and evolve provider integrations iteratively
+- Add first analytics provider integration (`mixpanel`) with repo-local secret config
 - Add optional "hard threshold" prompting behavior
 
 ## Contributing

@@ -180,6 +180,55 @@ describe("runStatus", () => {
     }
   });
 
+  test("displays mixpanel validation result comparison", async () => {
+    const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+    const logSpy = jest.spyOn(console, "log").mockImplementation();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "conversion-rate.md"),
+        "---\nid: conversion-rate\nstatus: active\ndefault_action: narrow\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 8\n---\n",
+        "utf8",
+      );
+      await writeFile(
+        path.join(tempDir, EVIDENCE_DIR, "conversion-rate.json"),
+        `${JSON.stringify(
+          {
+            id: "conversion-rate",
+            checked_at: "2026-02-18T06:00:00.000Z",
+            mode: "mixpanel",
+            observed_value: 91,
+            meets_target: true,
+            leading_indicator: {
+              type: "mixpanel",
+              project_id: "3989556",
+              workspace_id: "4485331",
+              bookmark_id: "88319528",
+              operator: "gte",
+              target: 90,
+            },
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+
+      const exitCode = await runStatus();
+      const output = getPrintedOutput(logSpy);
+
+      expect(exitCode).toBe(0);
+      expect(output).toContain("conversion-rate");
+      expect(output).toContain("PASS 91 >= 90");
+    } finally {
+      cwdSpy.mockRestore();
+      logSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
   test("fails when required state file is missing", async () => {
     const tempDir = await createTempDir();
     const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);

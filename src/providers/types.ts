@@ -1,4 +1,4 @@
-export type LeadingIndicatorType = "manual";
+export type LeadingIndicatorType = "manual" | "mixpanel";
 
 export type ManualComparisonOperator = "lt" | "lte" | "eq" | "gte" | "gt";
 
@@ -8,7 +8,16 @@ export type ManualLeadingIndicator = {
   target: number;
 };
 
-export type LeadingIndicator = ManualLeadingIndicator;
+export type MixpanelLeadingIndicator = {
+  type: "mixpanel";
+  project_id: string;
+  workspace_id: string;
+  bookmark_id: string;
+  operator: ManualComparisonOperator;
+  target: number;
+};
+
+export type LeadingIndicator = ManualLeadingIndicator | MixpanelLeadingIndicator;
 
 export type CheckRunContext = {
   rootDir: string;

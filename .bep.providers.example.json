@@ -1,0 +1,5 @@
+{
+  "mixpanel": {
+    "service_account_creds": "<serviceaccount_username>:<serviceaccount_secret>"
+  }
+}

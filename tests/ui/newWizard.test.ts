@@ -8,6 +8,7 @@ import {
   type WizardPromptClient,
 } from "../../src/ui/newWizard";
 import type { ManualOperatorPromptResult, ManualTargetPromptResult } from "../../src/providers/manual";
+import type { ManualComparisonOperator } from "../../src/providers/types";
 
 type ScriptedStep =
   | { type: "capType"; result: CapTypePromptResult }
@@ -16,6 +17,14 @@ type ScriptedStep =
   | { type: "leadingIndicatorType"; result: LeadingIndicatorTypePromptResult }
   | { type: "manualOperator"; result: ManualOperatorPromptResult }
   | { type: "manualTarget"; result: ManualTargetPromptResult }
+  | { type: "mixpanelProjectId"; result: { kind: "value"; value: string } | { kind: "back" } | { kind: "cancel" } }
+  | { type: "mixpanelWorkspaceId"; result: { kind: "value"; value: string } | { kind: "back" } | { kind: "cancel" } }
+  | { type: "mixpanelBookmarkId"; result: { kind: "value"; value: string } | { kind: "back" } | { kind: "cancel" } }
+  | {
+      type: "mixpanelOperator";
+      result: { kind: "value"; value: ManualComparisonOperator } | { kind: "back" } | { kind: "cancel" };
+    }
+  | { type: "mixpanelTarget"; result: { kind: "value"; value: number } | { kind: "back" } | { kind: "cancel" } }
   | { type: "primaryAssumption"; result: MarkdownSectionPromptResult }
   | { type: "rationale"; result: MarkdownSectionPromptResult }
   | { type: "validationPlan"; result: MarkdownSectionPromptResult }
@@ -62,6 +71,41 @@ function createScriptedClient(steps: ScriptedStep[]): WizardPromptClient {
       const next = steps.shift();
       if (!next || next.type !== "manualTarget") {
         throw new Error("Unexpected manual target prompt");
+      }
+      return next.result;
+    },
+    async promptMixpanelProjectId() {
+      const next = steps.shift();
+      if (!next || next.type !== "mixpanelProjectId") {
+        throw new Error("Unexpected mixpanel project id prompt");
+      }
+      return next.result;
+    },
+    async promptMixpanelWorkspaceId() {
+      const next = steps.shift();
+      if (!next || next.type !== "mixpanelWorkspaceId") {
+        throw new Error("Unexpected mixpanel workspace id prompt");
+      }
+      return next.result;
+    },
+    async promptMixpanelBookmarkId() {
+      const next = steps.shift();
+      if (!next || next.type !== "mixpanelBookmarkId") {
+        throw new Error("Unexpected mixpanel bookmark id prompt");
+      }
+      return next.result;
+    },
+    async promptMixpanelOperator() {
+      const next = steps.shift();
+      if (!next || next.type !== "mixpanelOperator") {
+        throw new Error("Unexpected mixpanel operator prompt");
+      }
+      return next.result;
+    },
+    async promptMixpanelTarget() {
+      const next = steps.shift();
+      if (!next || next.type !== "mixpanelTarget") {
+        throw new Error("Unexpected mixpanel target prompt");
       }
       return next.result;
     },
@@ -177,5 +221,46 @@ describe("runNewWizard", () => {
     const result = await runNewWizard(client, () => undefined);
 
     expect(result).toEqual({ cancelled: true });
+  });
+
+  test("collects mixpanel setup values when mixpanel provider is selected", async () => {
+    const client = createScriptedClient([
+      { type: "capType", result: { kind: "value", value: "max_hours" } },
+      { type: "capValue", result: { kind: "value", value: 8 } },
+      { type: "action", result: { kind: "value", value: "narrow" } },
+      { type: "leadingIndicatorType", result: { kind: "value", value: "mixpanel" } },
+      { type: "mixpanelProjectId", result: { kind: "value", value: "3989556" } },
+      { type: "mixpanelWorkspaceId", result: { kind: "value", value: "4485331" } },
+      { type: "mixpanelBookmarkId", result: { kind: "value", value: "88319528" } },
+      { type: "mixpanelOperator", result: { kind: "value", value: "gte" } },
+      { type: "mixpanelTarget", result: { kind: "value", value: 100 } },
+      { type: "primaryAssumption", result: { kind: "value", value: "Activation will improve with onboarding updates." } },
+      { type: "rationale", result: { kind: "value", value: "Current activation is below baseline." } },
+      { type: "validationPlan", result: { kind: "value", value: "Use saved insight for 14-day rolling activation." } },
+      { type: "notes", result: { kind: "value", value: "" } },
+    ]);
+
+    const result = await runNewWizard(client, () => undefined);
+
+    expect(result).toEqual({
+      cancelled: false,
+      values: {
+        maxHours: 8,
+        maxCalendarDays: undefined,
+        defaultAction: "narrow",
+        leadingIndicator: {
+          type: "mixpanel",
+          project_id: "3989556",
+          workspace_id: "4485331",
+          bookmark_id: "88319528",
+          operator: "gte",
+          target: 100,
+        },
+        primaryAssumption: "Activation will improve with onboarding updates.",
+        rationale: "Current activation is below baseline.",
+        validationPlan: "Use saved insight for 14-day rolling activation.",
+        notes: "",
+      },
+    });
   });
 });

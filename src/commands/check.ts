@@ -28,7 +28,7 @@ function getLeadingIndicatorType(value: unknown): string | null {
 }
 
 function formatComparisonLabel(indicator: LeadingIndicator, observedValue: number): string {
-  if (indicator.type === "manual") {
+  if (indicator.type === "manual" || indicator.type === "mixpanel") {
     return `${observedValue} ${formatManualComparisonOperator(indicator.operator)} ${indicator.target}`;
   }
 
@@ -88,11 +88,17 @@ export async function runCheck(id: string): Promise<number> {
     return 1;
   }
 
-  const checkResult = await module.adapter.runCheck(parsedIndicator.value, {
-    rootDir,
-    betId: id,
-    nowIso: new Date().toISOString(),
-  });
+  let checkResult: Awaited<ReturnType<typeof module.adapter.runCheck>>;
+  try {
+    checkResult = await module.adapter.runCheck(parsedIndicator.value, {
+      rootDir,
+      betId: id,
+      nowIso: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error((error as Error).message);
+    return 1;
+  }
 
   if ("cancelled" in checkResult) {
     console.error("Cancelled. No evidence was written.");
