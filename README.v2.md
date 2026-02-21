@@ -35,9 +35,6 @@ BEP introduces lightweight friction at escalation points so sunk cost becomes vi
 ---
 
 ## Quick Start
-### Requirements
-- Node.js 20+
-- `npx`
 
 ### Install / run
 ```bash
@@ -47,7 +44,7 @@ npx bep-cli@latest --help
 ### 60-second path
 ```bash
 # 1) Initialize BEP in your repo
-npx bep-cli@latest init --no-install-hooks
+npx bep-cli@latest init
 
 # 2) Create your first bet (interactive wizard)
 npx bep-cli@latest new landing-page
@@ -100,22 +97,11 @@ BEP is currently intended for early adopters and collaborators, not production s
 
 ---
 
-## Brand
-Core palette:
-- `#0F172A` (foundation): seriousness, control, decision weight
-- `#0EA5A4` (signal): progress and validation
-- `#F97316` (warning): exposure and escalation pressure
-
-These colors are intended to carry across docs, CLI output themes, and future UI surfaces.
-
----
-
 ## Roadmap 🗺️
 ### Now (stabilize v0.1.x)
 - ✅ Core CLI is shipped (`init`, `new`, `start`, `stop`, `status`, `check`, `hook`)
-- 🔧 Fix hook runner invocation so hooks target project build (`dist/cli.js`) in dev workflows
-- 🔧 Ensure all commands support non-interactive execution (CI, scripts, agent workflows)
-- 🔧 Clarify `default_action` behavior: either enforce it in decisions or remove it from schema
+- 📊 Initial support for Mixpanel analytics
+- 🤖 Initial support for Claude Code coding agent
 
 ### Next (expand practical capability)
 - 📊 Add more analytics providers beyond Mixpanel (PostHog, Amplitude... )
@@ -135,12 +121,3 @@ These colors are intended to carry across docs, CLI output themes, and future UI
 - 🧠 [Thesis](./docs/thesis.md)
 - 🤖 [Claude Code Hooks Integration](./docs/agents/claude-code-hooks-integration.md)
 - 📊 [Mixpanel Provider](./docs/providers/mixpanel.md)
-
----
-
-## Technology Stack
-- Runtime/language: Node.js + TypeScript
-- CLI framework: `commander`
-- Build tooling: `tsup`
-- Test framework: `jest` (`ts-jest`)
-- Package format: CommonJS (`"type": "commonjs"`)
