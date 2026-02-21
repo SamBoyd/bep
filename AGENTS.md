@@ -1,3 +1,7 @@
+# Backwards compatibility
+
+The current version of this project v0.1.0, is determined as EXPERIMENTAL. Therefore breaking changes are expected by it's users. As such, you will not make changes backward compatible until version v1.0.0
+
 # Git commits
 
 After completing a major code change, include a suggested git commit message at the end of your response.
@@ -61,6 +65,7 @@ Update this map whenever directories, entrypoints, or core config locations chan
 .
 ├── AGENTS.md              # Agent instructions and project conventions
 ├── README.md              # Product-facing overview and CLI contract
+├── .bep.providers.example.json # Example provider credential config (copy to .bep.providers.json locally)
 ├── package.json           # NPM metadata, scripts, dependencies, bin mapping
 ├── jest.config.cjs        # Jest configuration
 ├── tsconfig.json          # TypeScript compiler configuration
