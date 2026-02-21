@@ -110,18 +110,23 @@ These colors are intended to carry across docs, CLI output themes, and future UI
 
 ---
 
-## Roadmap Snapshot
-Built now:
-- TypeScript + Node CLI package (`bep-cli`)
-- BEP file creation and lifecycle commands
-- Repo-native state/log/evidence layout
-- Initial agent tracking support for Claude Code hooks
+## Roadmap 🗺️
+### Now (stabilize v0.1.x)
+- ✅ Core CLI is shipped (`init`, `new`, `start`, `stop`, `status`, `check`, `hook`)
+- 🔧 Fix hook runner invocation so hooks target project build (`dist/cli.js`) in dev workflows
+- 🔧 Ensure all commands support non-interactive execution (CI, scripts, agent workflows)
+- 🔧 Clarify `default_action` behavior: either enforce it in decisions or remove it from schema
 
-In progress / next:
-- stronger cap enforcement and override UX
-- richer provider checks (manual + analytics integrations)
-- broader agent support (Cursor, Codex, Windsurf)
-- tighter decision audit trails
+### Next (expand practical capability)
+- 📊 Add more analytics providers beyond Mixpanel (PostHog, Amplitude... )
+- 🧩 Improve provider UX, including auto-extracting Mixpanel ids from report URLs
+- 🤖 Expand agent integrations beyond Claude Code (Cursor, Codex, Windsurf)
+- 🛠️ Add skills-based flows so agents can create bets and set up reports consistently
+
+### Later (structured experimentation)
+- 🌳 Introduce tree-structured bets (parent/child bet hierarchies)
+- 🔎 Support richer report query complexity and validation logic
+- 🎛️ Explore an Ink-based TUI for advanced interactive workflows
 
 ---
 
