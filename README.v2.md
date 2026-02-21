@@ -123,17 +123,13 @@ In progress / next:
 - broader agent support (Cursor, Codex, Windsurf)
 - tighter decision audit trails
 
-See also:
-- [PLAN.md](./PLAN.md)
-- [TODOS.md](./TODOS.md)
-
 ---
 
-## Documentation
-- Product thinking: [product_thinking.md](./product_thinking.md)
-- Implementation plan: [PLAN.md](./PLAN.md)
-- Agent/project conventions: [AGENTS.md](./AGENTS.md)
-- Current public contract reference: [README.md](./README.md)
+## Documentation 📚
+- 🏗️ [Architecture](./docs/architecture.md)
+- 🧠 [Thesis](./docs/thesis.md)
+- 🤖 [Claude Code Hooks Integration](./docs/agents/claude-code-hooks-integration.md)
+- 📊 [Mixpanel Provider](./docs/providers/mixpanel.md)
 
 ---
 
