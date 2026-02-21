@@ -34,6 +34,14 @@ BEP introduces lightweight friction at escalation points so sunk cost becomes vi
 
 ---
 
+## Documentation 📚
+- 🏗️ [Architecture](./docs/architecture.md)
+- 🧠 [Thesis](./docs/thesis.md)
+- 🤖 [Claude Code Hooks Integration](./docs/agents/claude-code-hooks-integration.md)
+- 📊 [Mixpanel Provider](./docs/providers/mixpanel.md)
+
+---
+
 ## Quick Start
 
 ### Install / run
@@ -113,11 +121,3 @@ BEP is currently intended for early adopters and collaborators, not production s
 - 🌳 Introduce tree-structured bets (parent/child bet hierarchies)
 - 🔎 Support richer report query complexity and validation logic
 - 🎛️ Explore an Ink-based TUI for advanced interactive workflows
-
----
-
-## Documentation 📚
-- 🏗️ [Architecture](./docs/architecture.md)
-- 🧠 [Thesis](./docs/thesis.md)
-- 🤖 [Claude Code Hooks Integration](./docs/agents/claude-code-hooks-integration.md)
-- 📊 [Mixpanel Provider](./docs/providers/mixpanel.md)
