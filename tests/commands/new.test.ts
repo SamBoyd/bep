@@ -4,12 +4,21 @@ import path from "node:path";
 import { runNew } from "../../src/commands/new";
 import { BETS_DIR, initRepo } from "../../src/fs/init";
 import { runNewWizard } from "../../src/ui/newWizard";
+import { promptNewBetName } from "../../src/ui/newBetName";
 
 jest.mock("../../src/ui/newWizard", () => ({
   runNewWizard: jest.fn(),
 }));
+jest.mock("../../src/ui/newBetName", () => {
+  const actual = jest.requireActual("../../src/ui/newBetName");
+  return {
+    ...actual,
+    promptNewBetName: jest.fn(),
+  };
+});
 
 const mockedRunNewWizard = runNewWizard as jest.MockedFunction<typeof runNewWizard>;
+const mockedPromptNewBetName = promptNewBetName as jest.MockedFunction<typeof promptNewBetName>;
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-new-command-test-"));
@@ -18,6 +27,7 @@ async function createTempDir(): Promise<string> {
 describe("runNew", () => {
   beforeEach(() => {
     mockedRunNewWizard.mockReset();
+    mockedPromptNewBetName.mockReset();
   });
 
   test("creates a new bet file for a unique id", async () => {
@@ -61,6 +71,45 @@ describe("runNew", () => {
       expect(content).toContain("Coordinate copy review with product marketing.");
       expect(content).not.toContain("max_calendar_days:");
       expect(logSpy).toHaveBeenCalledWith("\nCreated bets/landing-page.md.");
+      expect(mockedPromptNewBetName).not.toHaveBeenCalled();
+    } finally {
+      cwdSpy.mockRestore();
+      logSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("normalizes spaced/cased CLI-style input into lowercase underscored id", async () => {
+    const tempDir = await createTempDir();
+    const logSpy = jest.spyOn(console, "log").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+
+    mockedRunNewWizard.mockResolvedValue({
+      cancelled: false,
+      values: {
+        maxHours: 12,
+        defaultAction: "kill",
+        leadingIndicator: {
+          type: "manual",
+          operator: "gte",
+          target: 20,
+        },
+        primaryAssumption: "A focused landing page will increase demo requests.",
+        rationale: "Current page does not communicate value clearly.",
+        validationPlan: "Track weekly demo request lift after launch.",
+        notes: "Coordinate copy review with product marketing.",
+      },
+    });
+
+    try {
+      await initRepo(tempDir);
+      const exitCode = await runNew("New Landing Page");
+      const filePath = path.join(tempDir, BETS_DIR, "new_landing_page.md");
+      const content = await readFile(filePath, "utf8");
+
+      expect(exitCode).toBe(0);
+      expect(content).toContain("id: new_landing_page");
+      expect(logSpy).toHaveBeenCalledWith("\nCreated bets/new_landing_page.md.");
     } finally {
       cwdSpy.mockRestore();
       logSpy.mockRestore();
@@ -94,18 +143,18 @@ describe("runNew", () => {
     }
   });
 
-  test("fails for invalid id", async () => {
+  test("fails for unsupported id characters", async () => {
     const tempDir = await createTempDir();
     const errorSpy = jest.spyOn(console, "error").mockImplementation();
     const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
 
     try {
-      const exitCode = await runNew("Landing_Page");
+      const exitCode = await runNew("landing/page");
 
       expect(exitCode).toBe(1);
       expect(mockedRunNewWizard).not.toHaveBeenCalled();
       expect(errorSpy).toHaveBeenCalledWith(
-        "Invalid bet id 'Landing_Page'. Use lowercase slug format like 'landing-page'.",
+        "Invalid bet id 'landing/page'. Use id format like 'landing-page' or 'landing_page'.",
       );
     } finally {
       cwdSpy.mockRestore();
@@ -132,6 +181,63 @@ describe("runNew", () => {
     } finally {
       cwdSpy.mockRestore();
       errorSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("prompts for a bet name when id is omitted and replaces spaces with underscores", async () => {
+    const tempDir = await createTempDir();
+    const logSpy = jest.spyOn(console, "log").mockImplementation();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+    const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+    const stdoutDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+    Object.defineProperty(process.stdin, "isTTY", { value: true, configurable: true });
+    Object.defineProperty(process.stdout, "isTTY", { value: true, configurable: true });
+
+    mockedPromptNewBetName.mockResolvedValue({
+      cancelled: false,
+      value: "Landing Page Refresh",
+    });
+    mockedRunNewWizard.mockResolvedValue({
+      cancelled: false,
+      values: {
+        maxHours: 12,
+        defaultAction: "kill",
+        leadingIndicator: {
+          type: "manual",
+          operator: "gte",
+          target: 20,
+        },
+        primaryAssumption: "A focused landing page will increase demo requests.",
+        rationale: "Current page does not communicate value clearly.",
+        validationPlan: "Track weekly demo request lift after launch.",
+        notes: "Coordinate copy review with product marketing.",
+      },
+    });
+
+    try {
+      await initRepo(tempDir);
+      const exitCode = await runNew();
+      const filePath = path.join(tempDir, BETS_DIR, "landing_page_refresh.md");
+      const content = await readFile(filePath, "utf8");
+
+      expect(exitCode).toBe(0);
+      expect(content).toContain("id: landing_page_refresh");
+      expect(mockedPromptNewBetName).toHaveBeenCalledTimes(1);
+      expect(logSpy).toHaveBeenCalledWith("\nCreated bets/landing_page_refresh.md.");
+    } finally {
+      if (stdinDescriptor) {
+        Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+      } else {
+        Reflect.deleteProperty(process.stdin as NodeJS.ReadStream & { isTTY?: boolean }, "isTTY");
+      }
+      if (stdoutDescriptor) {
+        Object.defineProperty(process.stdout, "isTTY", stdoutDescriptor);
+      } else {
+        Reflect.deleteProperty(process.stdout as NodeJS.WriteStream & { isTTY?: boolean }, "isTTY");
+      }
+      cwdSpy.mockRestore();
+      logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
     }
   });

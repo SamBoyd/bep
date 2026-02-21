@@ -4,6 +4,7 @@ import { isValidBetId } from "../bep/id";
 import { renderNewBetMarkdown } from "../bep/template";
 import { BETS_DIR, ensureInitializedRepo } from "../fs/init";
 import { runNewWizard } from "../ui/newWizard";
+import { normalizeBetName, promptNewBetName } from "../ui/newBetName";
 
 async function pathExists(filePath: string): Promise<boolean> {
   try {
@@ -14,9 +15,33 @@ async function pathExists(filePath: string): Promise<boolean> {
   }
 }
 
-export async function runNew(id: string): Promise<number> {
+function isInteractiveTty(): boolean {
+  return process.stdin.isTTY === true && process.stdout.isTTY === true;
+}
+
+function invalidIdError(id: string): string {
+  return `Invalid bet id '${id}'. Use id format like 'landing-page' or 'landing_page'.`;
+}
+
+export async function runNew(rawId?: string): Promise<number> {
+  let id = rawId ? normalizeBetName(rawId) : undefined;
+  if (!id) {
+    if (!isInteractiveTty()) {
+      console.error("Missing bet name. Run 'bep new <name>' or use an interactive terminal.");
+      return 1;
+    }
+
+    const nameResult = await promptNewBetName();
+    if (nameResult.cancelled) {
+      console.error("Cancelled. No files were created.");
+      return 1;
+    }
+
+    id = normalizeBetName(nameResult.value);
+  }
+
   if (!isValidBetId(id)) {
-    console.error(`Invalid bet id '${id}'. Use lowercase slug format like 'landing-page'.`);
+    console.error(invalidIdError(id));
     return 1;
   }
 

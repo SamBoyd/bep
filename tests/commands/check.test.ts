@@ -48,7 +48,7 @@ describe("runCheck", () => {
 
       expect(exitCode).toBe(1);
       expect(errorSpy).toHaveBeenCalledWith(
-        "Invalid bet id 'Landing_Page'. Use lowercase slug format like 'landing-page'.",
+        "Invalid bet id 'Landing_Page'. Use lowercase id format like 'landing-page' or 'landing_page'.",
       );
       expect(mockedRunCheckPrompt).not.toHaveBeenCalled();
     } finally {

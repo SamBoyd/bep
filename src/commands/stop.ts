@@ -14,7 +14,7 @@ type StopLogEntry = {
 
 export async function runStop(id: string): Promise<number> {
   if (!isValidBetId(id)) {
-    console.error(`Invalid bet id '${id}'. Use lowercase slug format like 'landing-page'.`);
+    console.error(`Invalid bet id '${id}'. Use lowercase id format like 'landing-page' or 'landing_page'.`);
     return 1;
   }
 

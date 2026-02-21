@@ -174,9 +174,10 @@ bep init --no-install-hooks
 
 ### Create a new bet
 ```bash
-bep new landing-page
+bep new
 ```
 Runs an interactive wizard to collect:
+- `bet name` (spaces are normalized to `_` and name is lowercased; example: `Landing page` -> `landing_page`)
 - one cap type: `max_hours` or `max_calendar_days`
 - a required numeric value for the chosen cap type
 - `default_action` (`kill` / `narrow` / `pivot` / `extend`)
@@ -189,6 +190,7 @@ Runs an interactive wizard to collect:
 - `Notes` (optional markdown text)
 
 Behavior:
+- You can pass a name directly (`bep new landing page`), and spaces are normalized to `_` with lowercase conversion.
 - `id` must be unique: if `bets/<id>.md` already exists, the command fails.
 - You can move back one step in the wizard to revise the previous answer.
 - Chosen values are shown above each next question.
@@ -200,7 +202,7 @@ Creates `bets/landing-page.md` from a template.
 bep start landing-page
 ```
 Starts a work session for an existing BEP:
-- validates `id` as a lowercase slug
+- validates `id` as lowercase with `-` or `_` separators
 - requires `bets/<id>.md` to already exist
 - adds `{ id, started_at }` to `bets/_state.json` under `active`
 - avoids duplicates (if already active, it exits successfully without changing `started_at`)
@@ -246,7 +248,7 @@ Example provider config (do not commit secrets):
 }
 ```
 
-Use `.bep.providers.example.json` as a starting template.
+`bep init` scaffolds `.bep.providers.json` automatically.
 
 ### Mixpanel report setup for BEP
 When creating the Mixpanel report used by BEP validation:
