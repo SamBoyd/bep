@@ -147,15 +147,5 @@ These colors are intended to carry across docs, CLI output themes, and future UI
 
 ---
 
-## Contributing
-Discussion-first contributions are preferred at this stage.
-
-Before large changes:
-1. Open an issue describing the problem and proposed approach.
-2. Align on product intent (especially around enforcement and workflow behavior).
-3. Submit focused, reviewable PRs.
-
----
-
 ## License
 MIT
