@@ -1,7 +1,6 @@
 import {
   type CapTypePromptResult,
   runNewWizard,
-  type ActionPromptResult,
   type LeadingIndicatorTypePromptResult,
   type MarkdownSectionPromptResult,
   type NumberPromptResult,
@@ -13,7 +12,6 @@ import type { ManualComparisonOperator } from "../../src/providers/types";
 type ScriptedStep =
   | { type: "capType"; result: CapTypePromptResult }
   | { type: "capValue"; result: NumberPromptResult }
-  | { type: "action"; result: ActionPromptResult }
   | { type: "leadingIndicatorType"; result: LeadingIndicatorTypePromptResult }
   | { type: "manualOperator"; result: ManualOperatorPromptResult }
   | { type: "manualTarget"; result: ManualTargetPromptResult }
@@ -43,13 +41,6 @@ function createScriptedClient(steps: ScriptedStep[]): WizardPromptClient {
       const next = steps.shift();
       if (!next || next.type !== "capValue") {
         throw new Error("Unexpected cap value prompt");
-      }
-      return next.result;
-    },
-    async promptDefaultAction() {
-      const next = steps.shift();
-      if (!next || next.type !== "action") {
-        throw new Error("Unexpected action prompt");
       }
       return next.result;
     },
@@ -145,7 +136,6 @@ describe("runNewWizard", () => {
     const client = createScriptedClient([
       { type: "capType", result: { kind: "value", value: "max_hours" } },
       { type: "capValue", result: { kind: "value", value: 12 } },
-      { type: "action", result: { kind: "value", value: "kill" } },
       { type: "leadingIndicatorType", result: { kind: "value", value: "manual" } },
       { type: "manualOperator", result: { kind: "value", value: "gte" } },
       { type: "manualTarget", result: { kind: "value", value: 20 } },
@@ -162,7 +152,6 @@ describe("runNewWizard", () => {
       values: {
         maxHours: 12,
         maxCalendarDays: undefined,
-        defaultAction: "kill",
         leadingIndicator: {
           type: "manual",
           operator: "gte",
@@ -180,11 +169,10 @@ describe("runNewWizard", () => {
     const client = createScriptedClient([
       { type: "capType", result: { kind: "value", value: "max_hours" } },
       { type: "capValue", result: { kind: "value", value: 12 } },
-      { type: "action", result: { kind: "back" } },
+      { type: "leadingIndicatorType", result: { kind: "back" } },
       { type: "capValue", result: { kind: "back" } },
       { type: "capType", result: { kind: "value", value: "max_calendar_days" } },
       { type: "capValue", result: { kind: "value", value: 9 } },
-      { type: "action", result: { kind: "value", value: "pivot" } },
       { type: "leadingIndicatorType", result: { kind: "value", value: "manual" } },
       { type: "manualOperator", result: { kind: "value", value: "gt" } },
       { type: "manualTarget", result: { kind: "value", value: 10 } },
@@ -201,7 +189,6 @@ describe("runNewWizard", () => {
       values: {
         maxHours: undefined,
         maxCalendarDays: 9,
-        defaultAction: "pivot",
         leadingIndicator: {
           type: "manual",
           operator: "gt",
@@ -227,7 +214,6 @@ describe("runNewWizard", () => {
     const client = createScriptedClient([
       { type: "capType", result: { kind: "value", value: "max_hours" } },
       { type: "capValue", result: { kind: "value", value: 8 } },
-      { type: "action", result: { kind: "value", value: "narrow" } },
       { type: "leadingIndicatorType", result: { kind: "value", value: "mixpanel" } },
       { type: "mixpanelProjectId", result: { kind: "value", value: "3989556" } },
       { type: "mixpanelWorkspaceId", result: { kind: "value", value: "4485331" } },
@@ -247,7 +233,6 @@ describe("runNewWizard", () => {
       values: {
         maxHours: 8,
         maxCalendarDays: undefined,
-        defaultAction: "narrow",
         leadingIndicator: {
           type: "mixpanel",
           project_id: "3989556",

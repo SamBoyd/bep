@@ -39,7 +39,6 @@ describe("runNew", () => {
       cancelled: false,
       values: {
         maxHours: 12,
-        defaultAction: "kill",
         leadingIndicator: {
           type: "manual",
           operator: "gte",
@@ -60,7 +59,7 @@ describe("runNew", () => {
 
       expect(exitCode).toBe(0);
       expect(content).toContain("id: landing-page");
-      expect(content).toContain("default_action: kill");
+      expect(content).not.toContain("default_action:");
       expect(content).toContain("max_hours: 12");
       expect(content).toContain("leading_indicator:");
       expect(content).toContain("operator: gte");
@@ -88,7 +87,6 @@ describe("runNew", () => {
       cancelled: false,
       values: {
         maxHours: 12,
-        defaultAction: "kill",
         leadingIndicator: {
           type: "manual",
           operator: "gte",
@@ -202,7 +200,6 @@ describe("runNew", () => {
       cancelled: false,
       values: {
         maxHours: 12,
-        defaultAction: "kill",
         leadingIndicator: {
           type: "manual",
           operator: "gte",
@@ -269,7 +266,6 @@ describe("runNew", () => {
     mockedRunNewWizard.mockResolvedValue({
       cancelled: false,
       values: {
-        defaultAction: "extend",
         leadingIndicator: {
           type: "manual",
           operator: "lte",
@@ -292,7 +288,7 @@ describe("runNew", () => {
 
       expect(exitCode).toBe(0);
       await expect(readFile(path.join(tempDir, BETS_DIR, "onboarding-v2.md"), "utf8")).resolves.toContain(
-        "default_action: extend",
+        "leading_indicator:",
       );
     } finally {
       cwdSpy.mockRestore();

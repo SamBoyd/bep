@@ -4,7 +4,6 @@ import type { ManualSetupPromptClient, ManualOperatorPromptResult, ManualTargetP
 import { createClackMixpanelSetupPromptClient } from "../providers/mixpanel";
 import type { MixpanelSetupPromptClient } from "../providers/mixpanel";
 import type { LeadingIndicator, LeadingIndicatorType, ManualComparisonOperator } from "../providers/types";
-import type { DefaultAction } from "../bep/template";
 
 const BACK_VALUE = "__back__";
 const DIM = "\u001b[2m";
@@ -22,11 +21,6 @@ export type NumberPromptResult =
   | { kind: "back" }
   | { kind: "cancel" };
 
-export type ActionPromptResult =
-  | { kind: "value"; value: DefaultAction }
-  | { kind: "back" }
-  | { kind: "cancel" };
-
 export type LeadingIndicatorTypePromptResult =
   | { kind: "value"; value: LeadingIndicatorType }
   | { kind: "back" }
@@ -40,7 +34,6 @@ export type MarkdownSectionPromptResult =
 export type NewWizardValues = {
   maxHours?: number;
   maxCalendarDays?: number;
-  defaultAction: DefaultAction;
   leadingIndicator: LeadingIndicator;
   primaryAssumption: string;
   rationale: string;
@@ -61,7 +54,6 @@ export type WizardPromptClient = ManualSetupPromptClient &
     initialValue?: number;
     allowBack: boolean;
   }): Promise<NumberPromptResult>;
-  promptDefaultAction(params: { initialValue?: DefaultAction; allowBack: boolean }): Promise<ActionPromptResult>;
   promptLeadingIndicatorType(params: {
     initialValue?: LeadingIndicatorType;
     allowBack: boolean;
@@ -77,7 +69,6 @@ type WizardLog = (message: string) => void;
 const STEP_ORDER = [
   "cap_type",
   "cap_value",
-  "default_action",
   "leading_indicator_type",
   "leading_indicator_setup",
   "primary_assumption",
@@ -98,7 +89,6 @@ type StepHandler = (context: StepHandlerContext) => Promise<StepFlowResult>;
 type MutableWizardValues = {
   capType?: OptionalNumberField;
   capValue?: number;
-  defaultAction?: DefaultAction;
   leadingIndicatorType?: LeadingIndicatorType;
   leadingIndicator?: LeadingIndicator;
   primaryAssumption?: string;
@@ -122,7 +112,6 @@ function applyPromptResult<T>(result: PromptFlowResult<T>, onValue: (value: T) =
 
 function finalizeWizardValues(values: MutableWizardValues): NewWizardValues | null {
   if (
-    !values.defaultAction ||
     !values.capType ||
     typeof values.capValue !== "number" ||
     !values.leadingIndicator ||
@@ -140,7 +129,6 @@ function finalizeWizardValues(values: MutableWizardValues): NewWizardValues | nu
   return {
     maxHours,
     maxCalendarDays,
-    defaultAction: values.defaultAction,
     leadingIndicator: values.leadingIndicator,
     primaryAssumption: values.primaryAssumption,
     rationale: values.rationale,
@@ -178,17 +166,6 @@ const STEP_HANDLERS: Record<Step, StepHandler> = {
 
     return applyPromptResult(result, (value) => {
       values.capValue = value;
-    });
-  },
-
-  async default_action({ client, values, stepIndex }) {
-    const result = await client.promptDefaultAction({
-      initialValue: values.defaultAction,
-      allowBack: stepIndex > 0,
-    });
-
-    return applyPromptResult(result, (value) => {
-      values.defaultAction = value;
     });
   },
 
@@ -378,35 +355,6 @@ export function createClackPromptClient(): WizardPromptClient {
       }
 
       return { kind: "value", value: Number(trimmed) };
-    },
-
-    async promptDefaultAction({ initialValue, allowBack }) {
-      const options: Array<{ label: string; value: DefaultAction | typeof BACK_VALUE }> = [
-        { label: "Kill", value: "kill" },
-        { label: "Narrow", value: "narrow" },
-        { label: "Pivot", value: "pivot" },
-        { label: "Extend", value: "extend" },
-      ];
-
-      if (allowBack) {
-        options.unshift({ label: "Back", value: BACK_VALUE });
-      }
-
-      const value = await select({
-        message: "Default action if validation fails",
-        options,
-        initialValue,
-      });
-
-      if (isCancel(value)) {
-        return { kind: "cancel" };
-      }
-
-      if (value === BACK_VALUE) {
-        return { kind: "back" };
-      }
-
-      return { kind: "value", value };
     },
 
     async promptLeadingIndicatorType({ initialValue, allowBack }) {

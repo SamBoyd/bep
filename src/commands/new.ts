@@ -71,7 +71,6 @@ export async function runNew(rawId?: string): Promise<number> {
   const markdown = renderNewBetMarkdown({
     id,
     createdAt: new Date().toISOString(),
-    defaultAction: wizardResult.values.defaultAction,
     leadingIndicator: wizardResult.values.leadingIndicator,
     maxHours: wizardResult.values.maxHours,
     maxCalendarDays: wizardResult.values.maxCalendarDays,

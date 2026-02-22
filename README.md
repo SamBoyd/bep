@@ -21,7 +21,6 @@ BEP treats each feature as a **capped bet** with:
 - a primary assumption
 - an exposure cap (e.g. hours, sessions, calendar days)
 - a validation metric (a "leading indicator")
-- a default action if validation fails (kill / narrow / pivot)
 
 This is intentionally **not**:
 - a time tracker
@@ -46,8 +45,6 @@ leading_indicator:
   type: manual
   operator: gte
   target: 20
-
-default_action: kill
 ---
 
 # Budgeted Engineering Proposal
@@ -180,7 +177,6 @@ Runs an interactive wizard to collect:
 - `bet name` (spaces are normalized to `_` and name is lowercased; example: `Landing page` -> `landing_page`)
 - one cap type: `max_hours` or `max_calendar_days`
 - a required numeric value for the chosen cap type
-- `default_action` (`kill` / `narrow` / `pivot` / `extend`)
 - `leading_indicator.type` (`manual` or `mixpanel`)
 - `leading_indicator.operator` (one of `lt`, `lte`, `eq`, `gte`, `gt`)
 - `leading_indicator.target` (required numeric threshold)

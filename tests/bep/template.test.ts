@@ -6,7 +6,6 @@ describe("renderNewBetMarkdown", () => {
     const markdown = renderNewBetMarkdown({
       id: "landing-page",
       createdAt: "2026-02-18T00:00:00.000Z",
-      defaultAction: "kill",
       leadingIndicator: {
         type: "manual",
         operator: "gte",
@@ -22,7 +21,6 @@ describe("renderNewBetMarkdown", () => {
     expect(parsed.data).toEqual({
       id: "landing-page",
       status: "active",
-      default_action: "kill",
       created_at: "2026-02-18T00:00:00.000Z",
       leading_indicator: {
         type: "manual",
@@ -30,6 +28,7 @@ describe("renderNewBetMarkdown", () => {
         target: 20,
       },
     });
+    expect(parsed.data).not.toHaveProperty("default_action");
     expect(parsed.content).toContain("# Budgeted Engineering Proposal");
     expect(parsed.content).toContain("People need a simpler signup flow.");
     expect(parsed.content).toContain("Signup drop-off is the biggest funnel bottleneck.");
@@ -41,7 +40,6 @@ describe("renderNewBetMarkdown", () => {
     const markdown = renderNewBetMarkdown({
       id: "onboarding-v2",
       createdAt: "2026-02-18T00:00:00.000Z",
-      defaultAction: "pivot",
       leadingIndicator: {
         type: "manual",
         operator: "gt",
@@ -56,6 +54,7 @@ describe("renderNewBetMarkdown", () => {
     const parsed = matter(markdown);
     expect(parsed.data).not.toHaveProperty("max_hours");
     expect(parsed.data).not.toHaveProperty("max_calendar_days");
+    expect(parsed.data).not.toHaveProperty("default_action");
     expect(parsed.data).toHaveProperty("leading_indicator");
   });
 
@@ -63,7 +62,6 @@ describe("renderNewBetMarkdown", () => {
     const markdown = renderNewBetMarkdown({
       id: "onboarding-v2",
       createdAt: "2026-02-18T00:00:00.000Z",
-      defaultAction: "extend",
       leadingIndicator: {
         type: "manual",
         operator: "eq",
