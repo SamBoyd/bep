@@ -25,12 +25,11 @@ Token-burn protection for feature work: BEP is the moment where you decide, *do 
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./img/diagram-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="./img/diagram-light.svg">
-    <img alt="FSM Diagram" src="./img/diagram-light.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="./img/diagram-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="./img/diagram-light.png">
+    <img alt="FSM Diagram" src="./img/diagram-light.png">
   </picture>
 </p>
----
 
 ## Quick start (Claude Code)
 
