@@ -17,6 +17,9 @@ BEP exists to add decision discipline where AI-assisted coding is fast but valid
 
 Instead of treating work as an endless task list, BEP treats each feature as a capped bet with a declared assumption, time limit, validation target, and default fallback action.
 
+## How It Works
+Define a bet file -> track exposure via `start`/`stop` or agent hooks -> gate work with `bep check` (locally or in CI).
+
 ---
 
 ## Why This Exists
