@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "build": "tsup",
+    "prepack": "npm run build",
     "pretest": "npm run build",
     "test": "jest"
   },
@@ -31,4 +32,3 @@
     "typescript": "^5.7.3"
   }
 }
-
