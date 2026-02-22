@@ -6,17 +6,17 @@
   </picture>
 </p>
 
-# BEP: a guardrail for Claude Code
-*Prevent runaway build-spend by forcing every feature into a budgeted validation bet.*
+# BEP: a guardrail for AI coding agents (Claude Code first)
+*Agents speed up execution. BEP makes sure you don’t accelerate in the wrong direction.*
 
-> “This is a Claude Code guardrail that prevents runaway build-spend by forcing every feature into a budgeted validation bet.”
+> “When code is cheap, you’re forced to make more product bets, more often. The limiting factor becomes selecting the right thing to build and validating it quickly, not implementing it.”
 
-BEP turns “build whatever” into **budgeted bets**:
+BEP prevents “Feature A → B → C” before A is validated by turning “build whatever” into **budgeted bets**:
 - a time cap (hours / calendar days),
 - a validation target (what would prove this matters),
 - a fallback (what you do if validation fails).
 
-Token-burn protection for feature work: BEP is the moment where you decide, *do we validate, or do we keep building?*
+Rabbit-hole protection for feature work: BEP is the moment where you decide, *do we validate, or do we keep building?*
 
 ## How it works (3 lines)
 1. **Define a bet** (`bep new`) with a cap + validation target.
@@ -30,6 +30,16 @@ Token-burn protection for feature work: BEP is the moment where you decide, *do 
     <img alt="FSM Diagram" src="./img/diagram-light.png">
   </picture>
 </p>
+
+## Supported coding agents
+- **Claude Code** (only supported agent right now) via hooks: `bep init --install-hooks --agent claude-code`.
+- Planned (not supported yet): Codex, Cursor, OpenCode, and other agent runners.
+
+## Supported analytics platforms
+Validation checks run via a provider configured in `.bep.providers.json` (or by manual entry).
+
+- **Mixpanel** (`mixpanel`) — see `docs/providers/mixpanel.md`.
+- **Manual entry** (`manual`) — you type the observed value during `bep check`.
 
 ## Quick start (Claude Code)
 
@@ -84,9 +94,9 @@ bep stop landing-page-cta
 
 ---
 
-## Why Claude Code users use BEP
+## Why AI coding agent users use BEP
 
-Claude is extremely good at *building*. The failure mode is spending hours/tokens producing “finished” features before you’ve validated the underlying assumption.
+AI coding agents are extremely good at *building*. The failure mode is spending hours/tokens producing “finished” features before you’ve validated the underlying assumption.
 
 BEP gives you three guardrails:
 - **Time caps**: stop after N hours (or calendar days) instead of “just one more change”.
