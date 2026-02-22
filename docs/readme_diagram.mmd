@@ -1,0 +1,26 @@
+stateDiagram-v2
+  [*] --> NewBet: bep new
+
+  state WithinBudget {
+    NewBet --> AgentWork: agent starts work
+
+    AgentWork --> ValidationCheck: on agent hook
+
+    ValidationCheck --> AnalyticsProvider: run validation
+    ValidationCheck --> AgentWork: fail validation
+  }
+
+  ValidationCheck --> GuardLifted: passes validation
+  ValidationCheck --> BlockWork: fails validation beyond budget
+
+  GuardLifted -->  [*]
+
+  classDef basic fill:transparent,stroke:#CBD5E1,color:#F8FAFC,stroke-width:1px;
+  classDef guardLifted fill:#00d6d8,stroke:#22C55E,color:#BBF7D0,stroke-width:2px;
+  classDef blocked fill:transparent,stroke:#EF4444,color:#FECACA,stroke-width:2px;
+  classDef provider fill:transparent,stroke:#60A5FA,color:#BFDBFE,stroke-width:2px,stroke-dasharray: 4 3;
+
+  class NewBet,AgentWork,ValidationCheck basic;
+  class GuardLifted guardLifted;
+  class BlockWork blocked;
+  class AnalyticsProvider provider;
