@@ -1,3 +1,11 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./img/banner-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="./img/banner-light.png">
+    <img alt="Project Banner" src="./img/banner-light.png" width="830">
+  </picture>
+</p>
+
 # BEP: Budgeted Engineering Proposals
 **A Git-native pre-commitment CLI for AI-native builders.**
 
