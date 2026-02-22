@@ -34,6 +34,24 @@ function resolveAgent(agent: string): { ok: true; value: HookAgent } | { ok: fal
   return { ok: true, value: agent };
 }
 
+function quoteShellArg(value: string): string {
+  if (/^[A-Za-z0-9_./:@-]+$/.test(value)) {
+    return value;
+  }
+
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+export function resolveHookCommandBase(startDir: string): string {
+  const argv1 = process.argv[1]?.trim();
+  if (!argv1) {
+    return "bep";
+  }
+
+  const resolved = path.isAbsolute(argv1) ? argv1 : path.resolve(startDir, argv1);
+  return quoteShellArg(resolved);
+}
+
 export async function installAgentHooks(startDir: string, agent: string): Promise<InstallHooksResult> {
   const resolved = resolveAgent(agent);
   if (!resolved.ok) {
@@ -49,7 +67,8 @@ export async function installAgentHooks(startDir: string, agent: string): Promis
     };
   }
 
-  const installed = await installClaudeCodeHooks(claudeDir);
+  const hookCommandBase = resolveHookCommandBase(startDir);
+  const installed = await installClaudeCodeHooks(claudeDir, hookCommandBase);
   const settingsPathRelative = path.relative(startDir, installed.settingsPath) || path.basename(installed.settingsPath);
 
   return {

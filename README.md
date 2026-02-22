@@ -151,6 +151,11 @@ Hook install target resolution:
 - It uses the nearest existing `.claude` directory
 - If no `.claude` directory exists in ancestors, install fails with setup guidance and writes no hook config
 
+Hook command resolution:
+- Hook commands are written using the CLI executable path that ran `bep init --install-hooks`
+- In contributor/dev workflows this means your built `dist/cli.js` path is written into `.claude/settings.json`
+- Run `npm run build` before installing hooks in dev so `dist/cli.js` exists and matches your latest code
+
 Only `bep init` creates BEP repo structure. All other commands require an existing initialized BEP repo.
 Like Git, commands work from either the BEP repo root or any subdirectory under it.
 

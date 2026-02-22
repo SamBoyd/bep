@@ -8,6 +8,10 @@ async function createTempDir(): Promise<string> {
 }
 
 describe("runInit", () => {
+  function expectedHookCommand(base: string, event: string): string {
+    return `${base} hook claude-code ${event}`;
+  }
+
   test("returns 0 and logs initialization message", async () => {
     const tempDir = await createTempDir();
     const logSpy = jest.spyOn(console, "log").mockImplementation();
@@ -47,28 +51,34 @@ describe("runInit", () => {
     const tempDir = await createTempDir();
     const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const logSpy = jest.spyOn(console, "log").mockImplementation();
+    const originalArgv1 = process.argv[1];
 
     try {
       await mkdir(path.join(tempDir, ".claude"), { recursive: true });
+      process.argv[1] = "dist/cli.js";
 
       const exitCode = await runInit({ installHooks: true, agent: "claude-code" });
       const settings = JSON.parse(await readFile(path.join(tempDir, ".claude", "settings.json"), "utf8"));
+      const hookBase = path.join(tempDir, "dist", "cli.js");
 
       expect(exitCode).toBe(0);
       expect(settings.hooks.UserPromptSubmit[0].hooks).toEqual(
-        expect.arrayContaining([{ type: "command", command: "bep hook claude-code user-prompt-submit" }]),
+        expect.arrayContaining([{ type: "command", command: expectedHookCommand(hookBase, "user-prompt-submit") }]),
       );
       expect(settings.hooks.PostToolUse[0].hooks).toEqual(
-        expect.arrayContaining([{ type: "command", command: "bep hook claude-code post-tool-use" }]),
+        expect.arrayContaining([{ type: "command", command: expectedHookCommand(hookBase, "post-tool-use") }]),
       );
       expect(settings.hooks.PostToolUseFailure[0].hooks).toEqual(
-        expect.arrayContaining([{ type: "command", command: "bep hook claude-code post-tool-use-failure" }]),
+        expect.arrayContaining([
+          { type: "command", command: expectedHookCommand(hookBase, "post-tool-use-failure") },
+        ]),
       );
       expect(settings.hooks.SessionEnd[0].hooks).toEqual(
-        expect.arrayContaining([{ type: "command", command: "bep hook claude-code session-end" }]),
+        expect.arrayContaining([{ type: "command", command: expectedHookCommand(hookBase, "session-end") }]),
       );
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Installed Claude Code tracking hooks"));
     } finally {
+      process.argv[1] = originalArgv1 ?? "";
       cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });
@@ -129,32 +139,35 @@ describe("runInit", () => {
     const tempDir = await createTempDir();
     const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const logSpy = jest.spyOn(console, "log").mockImplementation();
+    const originalArgv1 = process.argv[1];
 
     try {
       await mkdir(path.join(tempDir, ".claude"), { recursive: true });
+      process.argv[1] = "./dist/cli.js";
 
       const first = await runInit({ installHooks: true, agent: "claude-code" });
       const second = await runInit({ installHooks: true, agent: "claude-code" });
       const settings = JSON.parse(await readFile(path.join(tempDir, ".claude", "settings.json"), "utf8"));
+      const hookBase = path.join(tempDir, "dist", "cli.js");
 
       expect(first).toBe(0);
       expect(second).toBe(0);
 
       const promptCommands = settings.hooks.UserPromptSubmit[0].hooks.filter(
         (entry: { type: string; command: string }) =>
-          entry.type === "command" && entry.command === "bep hook claude-code user-prompt-submit",
+          entry.type === "command" && entry.command === expectedHookCommand(hookBase, "user-prompt-submit"),
       );
       const postToolCommands = settings.hooks.PostToolUse[0].hooks.filter(
         (entry: { type: string; command: string }) =>
-          entry.type === "command" && entry.command === "bep hook claude-code post-tool-use",
+          entry.type === "command" && entry.command === expectedHookCommand(hookBase, "post-tool-use"),
       );
       const postToolFailureCommands = settings.hooks.PostToolUseFailure[0].hooks.filter(
         (entry: { type: string; command: string }) =>
-          entry.type === "command" && entry.command === "bep hook claude-code post-tool-use-failure",
+          entry.type === "command" && entry.command === expectedHookCommand(hookBase, "post-tool-use-failure"),
       );
       const endCommands = settings.hooks.SessionEnd[0].hooks.filter(
         (entry: { type: string; command: string }) =>
-          entry.type === "command" && entry.command === "bep hook claude-code session-end",
+          entry.type === "command" && entry.command === expectedHookCommand(hookBase, "session-end"),
       );
 
       expect(promptCommands).toHaveLength(1);
@@ -163,6 +176,7 @@ describe("runInit", () => {
       expect(endCommands).toHaveLength(1);
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("already installed"));
     } finally {
+      process.argv[1] = originalArgv1 ?? "";
       cwdSpy.mockRestore();
       logSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });

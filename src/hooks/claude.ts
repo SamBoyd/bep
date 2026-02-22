@@ -2,11 +2,11 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const CLAUDE_SETTINGS_FILE = "settings.json";
-const HOOK_COMMANDS = [
-  { event: "UserPromptSubmit", command: "bep hook claude-code user-prompt-submit" },
-  { event: "PostToolUse", command: "bep hook claude-code post-tool-use" },
-  { event: "PostToolUseFailure", command: "bep hook claude-code post-tool-use-failure" },
-  { event: "SessionEnd", command: "bep hook claude-code session-end" },
+const HOOK_EVENTS = [
+  { event: "UserPromptSubmit", suffix: "user-prompt-submit" },
+  { event: "PostToolUse", suffix: "post-tool-use" },
+  { event: "PostToolUseFailure", suffix: "post-tool-use-failure" },
+  { event: "SessionEnd", suffix: "session-end" },
 ] as const;
 
 type HookCommand = {
@@ -85,7 +85,10 @@ function ensureCommand(settings: ClaudeSettings, event: string, command: string)
   return true;
 }
 
-export async function installClaudeCodeHooks(claudeDir: string): Promise<ClaudeHookInstallResult> {
+export async function installClaudeCodeHooks(
+  claudeDir: string,
+  hookCommandBase: string,
+): Promise<ClaudeHookInstallResult> {
   const settingsPath = path.join(claudeDir, CLAUDE_SETTINGS_FILE);
 
   let settings: ClaudeSettings = {};
@@ -100,8 +103,9 @@ export async function installClaudeCodeHooks(claudeDir: string): Promise<ClaudeH
   }
 
   let addedCommands = 0;
-  for (const hook of HOOK_COMMANDS) {
-    if (ensureCommand(settings, hook.event, hook.command)) {
+  for (const hook of HOOK_EVENTS) {
+    const command = `${hookCommandBase} hook claude-code ${hook.suffix}`;
+    if (ensureCommand(settings, hook.event, command)) {
       addedCommands += 1;
     }
   }
