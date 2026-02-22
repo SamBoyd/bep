@@ -86,6 +86,14 @@ const STEP_ORDER = [
   "notes",
 ] as const;
 type Step = (typeof STEP_ORDER)[number];
+type StepFlowResult = { kind: "next" } | { kind: "back" } | { kind: "cancel" };
+type PromptFlowResult<T> = { kind: "value"; value: T } | { kind: "back" } | { kind: "cancel" };
+type StepHandlerContext = {
+  client: WizardPromptClient;
+  values: MutableWizardValues;
+  stepIndex: number;
+};
+type StepHandler = (context: StepHandlerContext) => Promise<StepFlowResult>;
 
 type MutableWizardValues = {
   capType?: OptionalNumberField;
@@ -99,219 +107,20 @@ type MutableWizardValues = {
   notes?: string;
 };
 
-export async function runNewWizard(
-  client: WizardPromptClient = createClackPromptClient(),
-  log: WizardLog = console.log,
-): Promise<NewWizardResult> {
-  let stepIndex = 0;
-  const values: MutableWizardValues = {};
-
-  while (stepIndex < STEP_ORDER.length) {
-    const step: Step = STEP_ORDER[stepIndex];
-
-    if (step === "cap_type") {
-      const result = await client.promptCapType({
-        initialValue: values.capType,
-        allowBack: stepIndex > 0,
-      });
-
-      if (result.kind === "cancel") {
-        return { cancelled: true };
-      }
-
-      if (result.kind === "back") {
-        stepIndex = Math.max(0, stepIndex - 1);
-        continue;
-      }
-
-      const previousCapType = values.capType;
-      values.capType = result.value;
-      if (previousCapType !== result.value) {
-        values.capValue = undefined;
-      }
-      stepIndex += 1;
-      continue;
-    }
-
-    if (step === "cap_value") {
-      if (!values.capType) {
-        return { cancelled: true };
-      }
-
-      const result = await client.promptCapValue({
-        field: values.capType,
-        initialValue: values.capValue,
-        allowBack: stepIndex > 0,
-      });
-
-      if (result.kind === "cancel") {
-        return { cancelled: true };
-      }
-
-      if (result.kind === "back") {
-        stepIndex = Math.max(0, stepIndex - 1);
-        continue;
-      }
-
-      values.capValue = result.value;
-      stepIndex += 1;
-      continue;
-    }
-
-    if (step === "default_action") {
-      const result = await client.promptDefaultAction({
-        initialValue: values.defaultAction,
-        allowBack: stepIndex > 0,
-      });
-
-      if (result.kind === "cancel") {
-        return { cancelled: true };
-      }
-
-      if (result.kind === "back") {
-        stepIndex = Math.max(0, stepIndex - 1);
-        continue;
-      }
-
-      values.defaultAction = result.value;
-      stepIndex += 1;
-      continue;
-    }
-
-    if (step === "leading_indicator_type") {
-      const result = await client.promptLeadingIndicatorType({
-        initialValue: values.leadingIndicatorType,
-        allowBack: stepIndex > 0,
-      });
-
-      if (result.kind === "cancel") {
-        return { cancelled: true };
-      }
-
-      if (result.kind === "back") {
-        stepIndex = Math.max(0, stepIndex - 1);
-        continue;
-      }
-
-      if (values.leadingIndicatorType !== result.value) {
-        values.leadingIndicator = undefined;
-      }
-      values.leadingIndicatorType = result.value;
-      stepIndex += 1;
-      continue;
-    }
-
-    if (step === "leading_indicator_setup") {
-      if (!values.leadingIndicatorType) {
-        return { cancelled: true };
-      }
-
-      const module = resolveProviderModule(values.leadingIndicatorType);
-      if (!module || !module.setup) {
-        return { cancelled: true };
-      }
-
-      const setupResult = await module.setup.collectNewWizardInput({
-        allowBack: stepIndex > 0,
-        initialValue:
-          values.leadingIndicator && values.leadingIndicator.type === values.leadingIndicatorType
-            ? values.leadingIndicator
-            : undefined,
-        client,
-      });
-
-      if (setupResult.kind === "cancel") {
-        return { cancelled: true };
-      }
-
-      if (setupResult.kind === "back") {
-        stepIndex = Math.max(0, stepIndex - 1);
-        continue;
-      }
-
-      values.leadingIndicator = setupResult.value;
-      stepIndex += 1;
-      continue;
-    }
-
-    if (step === "primary_assumption") {
-      const result = await client.promptPrimaryAssumption({
-        initialValue: values.primaryAssumption,
-        allowBack: stepIndex > 0,
-      });
-
-      if (result.kind === "cancel") {
-        return { cancelled: true };
-      }
-
-      if (result.kind === "back") {
-        stepIndex = Math.max(0, stepIndex - 1);
-        continue;
-      }
-
-      values.primaryAssumption = result.value;
-      stepIndex += 1;
-      continue;
-    }
-
-    if (step === "rationale") {
-      const result = await client.promptRationale({
-        initialValue: values.rationale,
-        allowBack: stepIndex > 0,
-      });
-
-      if (result.kind === "cancel") {
-        return { cancelled: true };
-      }
-
-      if (result.kind === "back") {
-        stepIndex = Math.max(0, stepIndex - 1);
-        continue;
-      }
-
-      values.rationale = result.value;
-      stepIndex += 1;
-      continue;
-    }
-
-    if (step === "validation_plan") {
-      const result = await client.promptValidationPlan({
-        initialValue: values.validationPlan,
-        allowBack: stepIndex > 0,
-      });
-
-      if (result.kind === "cancel") {
-        return { cancelled: true };
-      }
-
-      if (result.kind === "back") {
-        stepIndex = Math.max(0, stepIndex - 1);
-        continue;
-      }
-
-      values.validationPlan = result.value;
-      stepIndex += 1;
-      continue;
-    }
-
-    const result = await client.promptNotes({
-      initialValue: values.notes,
-      allowBack: stepIndex > 0,
-    });
-
-    if (result.kind === "cancel") {
-      return { cancelled: true };
-    }
-
-    if (result.kind === "back") {
-      stepIndex = Math.max(0, stepIndex - 1);
-      continue;
-    }
-
-    values.notes = result.value;
-    stepIndex += 1;
+function applyPromptResult<T>(result: PromptFlowResult<T>, onValue: (value: T) => void): StepFlowResult {
+  if (result.kind === "cancel") {
+    return { kind: "cancel" };
   }
 
+  if (result.kind === "back") {
+    return { kind: "back" };
+  }
+
+  onValue(result.value);
+  return { kind: "next" };
+}
+
+function finalizeWizardValues(values: MutableWizardValues): NewWizardValues | null {
   if (
     !values.defaultAction ||
     !values.capType ||
@@ -322,24 +131,185 @@ export async function runNewWizard(
     !values.validationPlan ||
     values.notes === undefined
   ) {
-    return { cancelled: true };
+    return null;
   }
 
   const maxHours = values.capType === "max_hours" ? values.capValue : undefined;
   const maxCalendarDays = values.capType === "max_calendar_days" ? values.capValue : undefined;
 
   return {
+    maxHours,
+    maxCalendarDays,
+    defaultAction: values.defaultAction,
+    leadingIndicator: values.leadingIndicator,
+    primaryAssumption: values.primaryAssumption,
+    rationale: values.rationale,
+    validationPlan: values.validationPlan,
+    notes: values.notes,
+  };
+}
+
+const STEP_HANDLERS: Record<Step, StepHandler> = {
+  async cap_type({ client, values, stepIndex }) {
+    const result = await client.promptCapType({
+      initialValue: values.capType,
+      allowBack: stepIndex > 0,
+    });
+
+    return applyPromptResult(result, (value) => {
+      const previousCapType = values.capType;
+      values.capType = value;
+      if (previousCapType !== value) {
+        values.capValue = undefined;
+      }
+    });
+  },
+
+  async cap_value({ client, values, stepIndex }) {
+    if (!values.capType) {
+      return { kind: "cancel" };
+    }
+
+    const result = await client.promptCapValue({
+      field: values.capType,
+      initialValue: values.capValue,
+      allowBack: stepIndex > 0,
+    });
+
+    return applyPromptResult(result, (value) => {
+      values.capValue = value;
+    });
+  },
+
+  async default_action({ client, values, stepIndex }) {
+    const result = await client.promptDefaultAction({
+      initialValue: values.defaultAction,
+      allowBack: stepIndex > 0,
+    });
+
+    return applyPromptResult(result, (value) => {
+      values.defaultAction = value;
+    });
+  },
+
+  async leading_indicator_type({ client, values, stepIndex }) {
+    const result = await client.promptLeadingIndicatorType({
+      initialValue: values.leadingIndicatorType,
+      allowBack: stepIndex > 0,
+    });
+
+    return applyPromptResult(result, (value) => {
+      if (values.leadingIndicatorType !== value) {
+        values.leadingIndicator = undefined;
+      }
+      values.leadingIndicatorType = value;
+    });
+  },
+
+  async leading_indicator_setup({ client, values, stepIndex }) {
+    if (!values.leadingIndicatorType) {
+      return { kind: "cancel" };
+    }
+
+    const module = resolveProviderModule(values.leadingIndicatorType);
+    if (!module || !module.setup) {
+      return { kind: "cancel" };
+    }
+
+    const setupResult = await module.setup.collectNewWizardInput({
+      allowBack: stepIndex > 0,
+      initialValue:
+        values.leadingIndicator && values.leadingIndicator.type === values.leadingIndicatorType
+          ? values.leadingIndicator
+          : undefined,
+      client,
+    });
+
+    return applyPromptResult(setupResult, (value) => {
+      values.leadingIndicator = value;
+    });
+  },
+
+  async primary_assumption({ client, values, stepIndex }) {
+    const result = await client.promptPrimaryAssumption({
+      initialValue: values.primaryAssumption,
+      allowBack: stepIndex > 0,
+    });
+
+    return applyPromptResult(result, (value) => {
+      values.primaryAssumption = value;
+    });
+  },
+
+  async rationale({ client, values, stepIndex }) {
+    const result = await client.promptRationale({
+      initialValue: values.rationale,
+      allowBack: stepIndex > 0,
+    });
+
+    return applyPromptResult(result, (value) => {
+      values.rationale = value;
+    });
+  },
+
+  async validation_plan({ client, values, stepIndex }) {
+    const result = await client.promptValidationPlan({
+      initialValue: values.validationPlan,
+      allowBack: stepIndex > 0,
+    });
+
+    return applyPromptResult(result, (value) => {
+      values.validationPlan = value;
+    });
+  },
+
+  async notes({ client, values, stepIndex }) {
+    const result = await client.promptNotes({
+      initialValue: values.notes,
+      allowBack: stepIndex > 0,
+    });
+
+    return applyPromptResult(result, (value) => {
+      values.notes = value;
+    });
+  },
+};
+
+export async function runNewWizard(
+  client: WizardPromptClient = createClackPromptClient(),
+  log: WizardLog = console.log,
+): Promise<NewWizardResult> {
+  let stepIndex = 0;
+  const values: MutableWizardValues = {};
+
+  while (stepIndex < STEP_ORDER.length) {
+    const step: Step = STEP_ORDER[stepIndex];
+    const handler = STEP_HANDLERS[step];
+    if (!handler) {
+      throw new Error(`No wizard step handler registered for '${step}'.`);
+    }
+
+    const flow = await handler({ client, values, stepIndex });
+    if (flow.kind === "cancel") {
+      return { cancelled: true };
+    }
+
+    if (flow.kind === "back") {
+      stepIndex = Math.max(0, stepIndex - 1);
+      continue;
+    }
+
+    stepIndex += 1;
+  }
+
+  const finalizedValues = finalizeWizardValues(values);
+  if (!finalizedValues) {
+    return { cancelled: true };
+  }
+
+  return {
     cancelled: false,
-    values: {
-      maxHours,
-      maxCalendarDays,
-      defaultAction: values.defaultAction,
-      leadingIndicator: values.leadingIndicator,
-      primaryAssumption: values.primaryAssumption,
-      rationale: values.rationale,
-      validationPlan: values.validationPlan,
-      notes: values.notes,
-    },
+    values: finalizedValues,
   };
 }
 
