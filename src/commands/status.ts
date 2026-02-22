@@ -37,7 +37,7 @@ const STATUS_HEADERS: Record<keyof StatusRow, string> = {
   id: "id",
   status: "status",
   active: "active",
-  exposureHours: "exposure_h",
+  exposureHours: "time_h",
   cap: "cap",
   capPercent: "cap_%",
   warning: "warning",

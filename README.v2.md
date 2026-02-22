@@ -15,7 +15,7 @@
 
 BEP exists to add decision discipline where AI-assisted coding is fast but validation is still slow.
 
-Instead of treating work as an endless task list, BEP treats each feature as a capped bet with a declared assumption, exposure limit, validation target, and default fallback action.
+Instead of treating work as an endless task list, BEP treats each feature as a capped bet with a declared assumption, time limit, validation target, and default fallback action.
 
 ---
 
@@ -68,7 +68,7 @@ npx bep-cli@latest new landing-page
 # 3) Start work on that bet
 npx bep-cli@latest start landing-page
 
-# 4) Stop and log session exposure
+# 4) Stop and log session time
 npx bep-cli@latest stop landing-page
 
 # 5) Review status
@@ -86,7 +86,7 @@ After `init`, BEP creates repo-local state (example shape):
 
 Expected status output shape:
 ```text
-id            status  active  exposure_h  cap     cap_%  warning  validation
+id            status  active  time_h      cap     cap_%  warning  validation
 landing-page  paused  no      0.00        12.00h  0.00%  -        N/A
 ```
 
@@ -126,11 +126,11 @@ Use the Mixpanel "Landing Page CTA Funnel" report to compare `signup_completed_r
 
 Enforcement example (`bep check landing-page`):
 ```text
-landing-page  exposure 10.2h / 12.0h (85.0%)  WARNING: near cap
+landing-page  time 10.2h / 12.0h (85.0%)  WARNING: near cap
 $ echo $?    # exit code after warning
 0
 
-landing-page  exposure 12.4h / 12.0h (103.3%)  FAIL: cap exceeded
+landing-page  time 12.4h / 12.0h (103.3%)  FAIL: cap exceeded
 $ echo $?    # exit code after cap breach
 1
 ```

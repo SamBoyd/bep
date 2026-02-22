@@ -19,7 +19,7 @@ As build velocity increases, the cost of poor decisions compounds faster. BEP is
 ## What this is
 BEP treats each feature as a **capped bet** with:
 - a primary assumption
-- an exposure cap (e.g. hours, sessions, calendar days)
+- a time cap (e.g. hours, sessions, calendar days)
 - a validation metric (a "leading indicator")
 
 This is intentionally **not**:
@@ -72,7 +72,7 @@ Example (planned):
 The goal is *friction at commitment escalation points*, not monitoring.
 
 Planned modes:
-- **Soft warning** at ~70% of exposure cap
+- **Soft warning** at ~70% of time cap
 - **Hard threshold prompt** at 100% (requires explicit override + justification)
 - **Strict mode** (optional): refuse further assistance until the BEP is updated (extended cap / status change / decision recorded)
 
@@ -211,7 +211,7 @@ Starts a work session for an existing BEP:
 
 `bep start <id>` supports multiple active bets at the same time.
 
-### Stop a bet session (and log exposure)
+### Stop a bet session (and log time)
 ```bash
 bep stop landing-page
 ```
@@ -275,14 +275,14 @@ bep status
 ```
 Shows:
 - active bets
-- exposure used vs cap
+- time used vs cap
 - cap warning labels (`NEARING_CAP` at >=70%, `AT_CAP` at >=100%)
 - last known validation result vs target
 
 ## Intended workflow
 1. **Declare the bet**: write `bets/<id>.md` (assumption, cap, validation, default action).
 2. **Activate the bet**: `bep start <id>`.
-3. **Accumulate exposure**: sessions/hours are logged to `bets/_logs/`.
+3. **Track time**: sessions/hours are logged to `bets/_logs/`.
 4. **Check validation**: `bep check <id>` (on interval or at cap).
 5. **Decision moment at threshold**: kill / narrow / pivot / extend-with-justification (recorded in Git).
 6. **Review history**: learn from killed bets and recalibrate.
@@ -308,7 +308,7 @@ The system should surface evidence and compare to the declared threshold; it sho
 ## Roadmap (draft)
 - Define the v0 BEP file schema (frontmatter fields + required sections)
 - Implement `bep init/new/status` with zero external dependencies
-- Implement exposure logging (sessions first; hours derived)
+- Implement time logging (sessions first; hours derived)
 - Implement manual `bep check` evidence capture and evolve provider integrations iteratively
 - Add first analytics provider integration (`mixpanel`) with repo-local secret config
 - Add optional "hard threshold" prompting behavior

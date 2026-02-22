@@ -50,7 +50,7 @@ describe("runStatus", () => {
     }
   });
 
-  test("prints row with zero exposure and no validation by default", async () => {
+  test("prints row with zero tracked time and no validation by default", async () => {
     const tempDir = await createTempDir();
     const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const logSpy = jest.spyOn(console, "log").mockImplementation();
@@ -68,7 +68,7 @@ describe("runStatus", () => {
 
       expect(exitCode).toBe(0);
       expect(output).toContain("id");
-      expect(output).toContain("exposure_h");
+      expect(output).toContain("time_h");
       expect(output).toContain("landing-page");
       expect(output).toContain("0.00");
       expect(output).toContain("N/A");
