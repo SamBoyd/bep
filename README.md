@@ -1,324 +1,188 @@
-# BEP: Budgeted Engineering Proposals
-*A Git-native anti–sunk-cost system for AI-native builders.*
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./img/banner-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="./img/banner-light.png">
+    <img alt="Project Banner" src="./img/banner-light.png" width="830">
+  </picture>
+</p>
 
-> Status: exploratory. This repository currently contains the product spec and is using README-driven development: update this README first, then make it true with code.
+# BEP: a guardrail for Claude Code
+*Prevent runaway build-spend by forcing every feature into a budgeted validation bet.*
 
-## README-driven development notes
-This document is intentionally a **single-file introduction** that defines the initial *public interface* (CLI + file formats). If the README starts turning into a massive spec, that's a signal to split features into smaller, more modular pieces.
+> “This is a Claude Code guardrail that prevents runaway build-spend by forcing every feature into a budgeted validation bet.”
 
-## Why
-AI tools compress build time, but they don't compress:
-- validation cycles
-- feedback loops
-- distribution uncertainty
-- market learning
-- strategic judgment
+BEP turns “build whatever” into **budgeted bets**:
+- a time cap (hours / calendar days),
+- a validation target (what would prove this matters),
+- a fallback (what you do if validation fails).
 
-As build velocity increases, the cost of poor decisions compounds faster. BEP is meant to add a lightweight *pre-commitment layer* that makes sunk cost visible early and forces deliberate escalation decisions.
+Token-burn protection for feature work: BEP is the moment where you decide, *do we validate, or do we keep building?*
 
-## What this is
-BEP treats each feature as a **capped bet** with:
-- a primary assumption
-- a time cap (e.g. hours, sessions, calendar days)
-- a validation metric (a "leading indicator")
+## How it works (3 lines)
+1. **Define a bet** (`bep new`) with a cap + validation target.
+2. **Track time** manually (`bep start`/`bep stop`) or automatically via Claude Code hooks (`bep init --install-hooks`).
+3. **Use the guardrail**: `bep status` shows when you’re nearing/at cap; Claude hooks can hard-stop new prompts when you’re at cap.
 
-This is intentionally **not**:
-- a time tracker
-- a PM tool
-- an OKR system
-- an analytics dashboard
-
-## Core concepts
-### Budgeted Engineering Proposal (BEP)
-A BEP is a human-readable, machine-parseable document in your repo (planned format: Markdown + YAML frontmatter).
-
-Example (draft schema):
-
-```md
----
-id: landing-page
-status: active
-max_hours: 12
-max_calendar_days: 10
-
-leading_indicator:
-  type: manual
-  operator: gte
-  target: 20
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./img/diagram-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./img/diagram-light.svg">
+    <img alt="FSM Diagram" src="./img/diagram-dark.png" width="830">
+  </picture>
+</p>
 ---
 
-# Budgeted Engineering Proposal
+## Quick start (Claude Code)
 
-## 1. Primary Assumption
-What must be true for this feature to matter?
-
-## 2. Rationale
-Why this bet now?
-
-## 3. Validation Plan
-How signal will be collected.
-
-## 4. Notes
-Optional narrative context.
+### 1) Install BEP
+```bash
+npx bep-cli@latest --help
 ```
 
-### Evidence snapshots
-When a check runs, the system writes a snapshot to the repo so the decision trail is durable and reviewable.
-
-Example (planned):
-- `bets/_evidence/landing-page.json`
-
-### Enforcement (configurable)
-The goal is *friction at commitment escalation points*, not monitoring.
-
-Planned modes:
-- **Soft warning** at ~70% of time cap
-- **Hard threshold prompt** at 100% (requires explicit override + justification)
-- **Strict mode** (optional): refuse further assistance until the BEP is updated (extended cap / status change / decision recorded)
-
-## Repository layout (planned)
+### 2) Initialize in your repo
+```bash
+bep init
 ```
+This creates repo-local state under `bets/`:
+```text
 bets/
-  landing-page.md
-  onboarding-v2.md
-  payment-flow.md
-
+  <id>.md
   _state.json
-
   _logs/
-    landing-page.jsonl
-    onboarding-v2.jsonl
-
   _evidence/
-    landing-page.json
 ```
+It also creates `.bep.providers.json` (provider config) and (if this is a Git repo) adds `.bep.providers.json` to `.gitignore`.
 
-`_state.json` stores active sessions:
-```json
-{
-  "active": [
-    { "id": "landing-page", "started_at": "2026-02-18T21:15:00.000Z" }
-  ]
-}
-```
+During `init`, BEP will ask if you want to install Claude Code hooks. If you say yes, it writes commands into `.claude/settings.json` for these hook events:
+`UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `SessionEnd`.
 
-## CLI (proposed public API)
-This README is defining the first-pass interface we intend to implement.
-
-## Installation (current)
-Run with `npx`:
-
+Non-interactive install:
 ```bash
-npx bep-cli@latest <command>
-```
-
-## Agent Tracking (v1)
-BEP supports hook-based session tracking to reduce manual time logging friction for AI-native workflows.
-
-In v1, auto-tracking is focused on **Claude Code** hooks:
-- High-value hook events are logged (`UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `SessionEnd`)
-- Hook payloads are used to build attribution context (prompt/tool signals + current bet state)
-- `bep hook` delegates bet selection to Claude CLI and can auto-apply `start` / `stop` / `switch`
-- Cap checks run on every hook event for the attributed bet
-- Hard blocking is enforced only on `UserPromptSubmit` when attributed bet usage is at/over cap
-- Non-prompt over-cap events are logged for observability but are not hard-denied
-- Low-confidence or failed attribution is non-blocking: BEP state is unchanged and uncertainty is logged
-- Events are logged under `bets/_logs/agent-sessions.jsonl`
-- Attribution decisions are logged under `bets/_logs/agent-attribution.jsonl`
-- Over-cap detections are logged under `bets/_logs/agent-blocks.jsonl`
-- No commit-count tracking in v1
-
-Hard-block deny message includes the bet id, current usage vs cap, and unblock guidance (for example: extend `max_hours`/`max_calendar_days` or change bet status in `bets/<id>.md`).
-
-Agent support matrix in the init UX:
-- Claude Code: supported now
-- Cursor: coming soon
-- Codex: coming soon
-- Windsurf: coming soon
-
-The coming-soon agents are intentionally visible in selection so users can see roadmap direction.
-
-### Initialize BEP in a repo
-```bash
-bep init
-```
-Creates `bets/`, `bets/_logs/`, and `bets/_evidence/`.
-
-`bep init` then asks whether to install agent tracking hooks. If you opt in, it shows an agent selector with Claude Code plus coming-soon agents.
-
-Hook install target resolution:
-- The command walks up from your current directory (Git-style ancestor discovery)
-- It uses the nearest existing `.claude` directory
-- If no `.claude` directory exists in ancestors, install fails with setup guidance and writes no hook config
-
-Hook command resolution:
-- Hook commands are written using the CLI executable path that ran `bep init --install-hooks`
-- In contributor/dev workflows this means your built `dist/cli.js` path is written into `.claude/settings.json`
-- Run `npm run build` before installing hooks in dev so `dist/cli.js` exists and matches your latest code
-
-Only `bep init` creates BEP repo structure. All other commands require an existing initialized BEP repo.
-Like Git, commands work from either the BEP repo root or any subdirectory under it.
-
-### Init examples
-Interactive:
-```bash
-bep init
-# ? Install agent tracking hooks now?
-# ? Choose an agent: Claude Code
-# Installed Claude Code tracking hooks in .claude/settings.json.
-```
-
-Non-interactive:
-```bash
+# Requires a `.claude/` directory in this repo (or a parent directory)
 bep init --install-hooks --agent claude-code
-bep init --no-install-hooks
 ```
 
-### Create a new bet
+### 3) Create a bet
 ```bash
-bep new
-```
-Runs an interactive wizard to collect:
-- `bet name` (spaces are normalized to `_` and name is lowercased; example: `Landing page` -> `landing_page`)
-- one cap type: `max_hours` or `max_calendar_days`
-- a required numeric value for the chosen cap type
-- `leading_indicator.type` (`manual` or `mixpanel`)
-- `leading_indicator.operator` (one of `lt`, `lte`, `eq`, `gte`, `gt`)
-- `leading_indicator.target` (required numeric threshold)
-- `Primary Assumption` (required markdown text)
-- `Rationale` (required markdown text)
-- `Validation Plan` (required markdown text)
-- `Notes` (optional markdown text)
-
-Behavior:
-- You can pass a name directly (`bep new landing page`), and spaces are normalized to `_` with lowercase conversion.
-- `id` must be unique: if `bets/<id>.md` already exists, the command fails.
-- You can move back one step in the wizard to revise the previous answer.
-- Chosen values are shown above each next question.
-
-Creates `bets/landing-page.md` from a template.
-
-### Activate a bet for work
-```bash
-bep start landing-page
-```
-Starts a work session for an existing BEP:
-- validates `id` as lowercase with `-` or `_` separators
-- requires `bets/<id>.md` to already exist
-- adds `{ id, started_at }` to `bets/_state.json` under `active`
-- avoids duplicates (if already active, it exits successfully without changing `started_at`)
-- sets `status: active` in `bets/<id>.md` frontmatter
-
-`bep start <id>` supports multiple active bets at the same time.
-
-### Stop a bet session (and log time)
-```bash
-bep stop landing-page
-```
-Stops all active sessions for that bet id, appends one JSON line per stopped session to `bets/_logs/<id>.jsonl`, and updates `status: paused` in `bets/<id>.md` when the markdown file exists.
-
-If the id is not active, the command exits successfully with a no-op message.
-Each JSONL entry has: `id`, `started_at`, `stopped_at`, `duration_seconds`.
-
-### Check validation status
-```bash
-bep check landing-page
-```
-Runs an interactive manual check:
-- prompts for an observed value (required numeric)
-- prompts for notes (optional)
-- compares observed value vs `leading_indicator.target` using `leading_indicator.operator`
-- writes a snapshot to `bets/_evidence/<id>.json` including the comparison result
-
-For Mixpanel checks:
-- set `leading_indicator.type: mixpanel` with `project_id`, `workspace_id`, `bookmark_id`, `operator`, and `target`
-- create `.bep.providers.json` in repo root with `mixpanel.service_account_creds`
-- `bep check <id>` fetches the saved insight metric from Mixpanel, evaluates threshold pass/fail, and writes evidence
-- extract ids from report URL format:
-  `https://mixpanel.com/project/<YOUR_PROJECT_ID>/view/<YOUR_WORKSPACE_ID>/app/boards#id=12345&editor-card-id=%22report-<YOUR_BOOKMARK_ID>%22`
-
-This flow captures evidence and evaluates pass/fail for provider-backed numeric checks.
-Validation is dispatched through a provider registry. Unknown `leading_indicator.type` values fail fast with an invalid-config error.
-
-Example provider config (do not commit secrets):
-```json
-{
-  "mixpanel": {
-    "service_account_creds": "<serviceaccount_username>:<serviceaccount_secret>"
-  }
-}
+bep new landing-page-cta
 ```
 
-`bep init` scaffolds `.bep.providers.json` automatically.
+### 4) Use Claude Code (automatic time tracking)
+Once hooks are installed, Claude Code will call BEP on hook events. BEP will try to attribute work to a bet and (when confident) automatically `start`/`stop`/`switch` so time is tracked without you babysitting timers.
 
-### Mixpanel report setup for BEP
-When creating the Mixpanel report used by BEP validation:
-- build the report as a **Metric** (single value), not a graph
-- ensure the report resolves to one numeric result for the selected date range
-- avoid multi-series or multi-bucket chart configurations for this BEP report
+Practical pattern: tell Claude which bet it is working on (use the bet id in your prompt), then build until the guardrail warns/blocks.
 
-Why this matters:
-- `bep check` compares one observed value against `leading_indicator.target`
-- graph-style responses often return multiple values, which are not valid for threshold comparison
-
-To wire a report into BEP, copy ids from the Mixpanel report URL:
-- `project_id` from `/project/<PROJECT_ID>/...`
-- `workspace_id` from `/view/<WORKSPACE_ID>/...`
-- `bookmark_id` from `editor-card-id=%22report-<BOOKMARK_ID>%22`
-
-Example URL pattern:
-`https://mixpanel.com/project/<YOUR_PROJECT_ID>/view/<YOUR_WORKSPACE_ID>/app/boards#id=12345&editor-card-id=%22report-<YOUR_BOOKMARK_ID>%22`
-
-### Summarize current bets
+### 5) Check the guardrail
 ```bash
 bep status
 ```
-Shows:
-- active bets
-- time used vs cap
-- cap warning labels (`NEARING_CAP` at >=70%, `AT_CAP` at >=100%)
-- last known validation result vs target
 
-## Intended workflow
-1. **Declare the bet**: write `bets/<id>.md` (assumption, cap, validation, default action).
-2. **Activate the bet**: `bep start <id>`.
-3. **Track time**: sessions/hours are logged to `bets/_logs/`.
-4. **Check validation**: `bep check <id>` (on interval or at cap).
-5. **Decision moment at threshold**: kill / narrow / pivot / extend-with-justification (recorded in Git).
-6. **Review history**: learn from killed bets and recalibrate.
-
-## Integrations (planned)
-Validation providers are modular:
-- each provider owns config parsing + check execution
-- providers can optionally own setup prompts used by `bep new`
-
-Current registered provider:
-- `manual`
-- `mixpanel` (saved insight/report id)
-
-Validation sources under consideration (to be added incrementally as usage feedback arrives):
-- PostHog, Mixpanel, Amplitude
-- read-only SQL queries
-- Prometheus/Grafana metrics
-- custom metric endpoints
-- internal event logs
-
-The system should surface evidence and compare to the declared threshold; it should not autonomously decide viability.
-
-## Roadmap (draft)
-- Define the v0 BEP file schema (frontmatter fields + required sections)
-- Implement `bep init/new/status` with zero external dependencies
-- Implement time logging (sessions first; hours derived)
-- Implement manual `bep check` evidence capture and evolve provider integrations iteratively
-- Add first analytics provider integration (`mixpanel`) with repo-local secret config
-- Add optional "hard threshold" prompting behavior
-
-## Contributing
-If you want to help, start by:
-- proposing changes to the BEP schema (fields, required sections, ergonomics)
-- stress-testing the CLI surface area above (what's missing / too much / unclear)
-- suggesting minimal enforcement defaults that don't feel bureaucratic
+Manual override (if you want it):
+```bash
+bep start landing-page-cta
+bep stop landing-page-cta
+```
 
 ---
 
-For the longer-form thinking behind this, see `product_thinking.md`.
+## Why Claude Code users use BEP
+
+Claude is extremely good at *building*. The failure mode is spending hours/tokens producing “finished” features before you’ve validated the underlying assumption.
+
+BEP gives you three guardrails:
+- **Time caps**: stop after N hours (or calendar days) instead of “just one more change”.
+- **Validation targets**: force a measurable check before expanding scope.
+- **Fallbacks**: when validation fails, you have a default next move (kill, narrow, pivot, extend).
+
+Stop agents from turning uncertainty into sunk cost.
+
+---
+
+## Claude Code mode (hooks that can stop runaway prompts)
+
+### What BEP installs
+`bep init --install-hooks --agent claude-code` writes hook commands into `.claude/settings.json` that call:
+```text
+bep hook claude-code user-prompt-submit
+bep hook claude-code post-tool-use
+bep hook claude-code post-tool-use-failure
+bep hook claude-code session-end
+```
+
+### What the guardrail actually does
+On `user-prompt-submit`, BEP may respond with JSON like:
+```json
+{"continue": false, "stopReason": "Bet 'landing-page-cta' is at cap ..."}
+```
+That is the “kill switch” moment: Claude is about to keep going, BEP says “stop and validate (or change the bet).”
+
+You can sanity-check the hook command locally:
+```bash
+echo '{"session_id":"demo","prompt":"Implement more changes","cwd":"/repo"}' \
+  | bep hook claude-code user-prompt-submit
+```
+
+Notes:
+- Hook events are logged under `bets/_logs/` (for example: `bets/_logs/agent-sessions.jsonl`, `bets/_logs/agent-attribution.jsonl`, `bets/_logs/agent-blocks.jsonl`).
+- If BEP can’t confidently attribute work to a bet, it logs uncertainty and stays non-blocking.
+
+---
+
+## A realistic workflow (day in the life)
+1. `bep new pricing-page` (set cap, validation, fallback).
+2. `bep start pricing-page`.
+3. Paste the “agent contract” (next section) into Claude Code.
+4. Let Claude implement until BEP warns you via `bep status` or blocks new prompts via hooks.
+5. Run the validation step; capture evidence with `bep check pricing-page`.
+6. If validation fails: do the fallback instead of polishing the feature.
+
+---
+
+## Using BEP as an agent contract (paste into Claude)
+
+Use this as a system-style rule for Claude Code when working on a bet:
+- Implement only until you hit the time cap (or BEP blocks prompts).
+- If you’re blocked or nearing cap, propose the *smallest validation step* that would change the decision.
+- If validation can’t be reached cheaply, propose the bet’s fallback (kill, narrow, pivot, extend) and stop building.
+
+---
+
+## What BEP is (and isn’t)
+- BEP is a repo-native guardrail for decisions under uncertainty.
+- BEP isn’t a PM suite, an OKR system, or a time-tracking app.
+
+---
+
+## CLI surface (current)
+Use `npx bep-cli@latest ...` if you have not installed it globally.
+
+```text
+bep init [options]
+bep new [id...]
+bep start <id>
+bep stop <id>
+bep status
+bep check <id>
+bep hook <agent> <event>
+```
+
+`bep init` options:
+- `--install-hooks`
+- `--no-install-hooks`
+- `--agent <agent>` (currently: `claude-code`)
+
+---
+
+## Experimental status (v0.1.0)
+This project is experimental. Expect breaking changes before `v1.0.0`.
+
+Safe to try:
+- BEP only adds repo-local files/config under `bets/` and `.bep.providers.json`, plus optional hook config in `.claude/settings.json` if you choose hook install.
+- To remove it, delete `bets/`, delete `.bep.providers.json`, and remove the `.bep.providers.json` entry from `.gitignore` if BEP added it.
+
+---
+
+## More docs
+- `README.md` (full project overview)
+- `docs/agents/claude-code-hooks-integration.md` (hook integration notes; currently a stub)
+- `docs/providers/mixpanel.md` (Mixpanel validation provider)
