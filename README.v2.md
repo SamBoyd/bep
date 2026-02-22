@@ -98,7 +98,7 @@ landing-page  paused  no      0.00        12.00h  0.00%  -        N/A
 
 ```yaml
 ---
-id: landing-page-cta
+id: landing-page
 status: paused
 created_at: '2026-02-20T01:58:48.251Z'
 leading_indicator:
