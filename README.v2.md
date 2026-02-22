@@ -75,15 +75,71 @@ npx bep-cli@latest stop landing-page
 npx bep-cli@latest status
 ```
 
+After `init`, BEP creates repo-local state (example shape):
+```text
+.bep/                   # directory for the bet files
+├── _state_.json        # which bets are currently being tracked
+├── _logs/              # session logs
+└── _evidence/          # validation logs
+.bep.providers.json     # analytics providers config
+```
+
 Expected status output shape:
 ```text
 id            status  active  exposure_h  cap     cap_%  warning  validation
 landing-page  paused  no      0.00        12.00h  0.00%  -        N/A
 ```
 
+<details>
+<summary>Example bet file (what "assumption / cap / validation / fallback" looks like)</summary>
+
+```yaml
+---
+id: landing-page-cta
+status: paused
+created_at: '2026-02-20T01:58:48.251Z'
+leading_indicator:
+  type: mixpanel
+  report: Landing Page CTA Funnel
+  metric: signup_completed_rate
+  operator: gte
+  target: 0.12
+max_hours: 12
+---
+# Budgeted Engineering Proposal
+
+## 1. Primary Assumption
+
+That adding a clearer primary CTA to the landing page will increase visitor-to-signup conversion rate.
+
+## 2. Rationale
+
+The current landing page explains the product well enough, but the next step is not obvious. A stronger CTA should reduce hesitation and improve signup completion without changing pricing or onboarding.
+
+## 3. Validation Plan
+
+Use the Mixpanel "Landing Page CTA Funnel" report to compare `signup_completed_rate` after shipping the CTA change. This bet succeeds if the conversion rate reaches at least 12%.
+
+## 4. Notes
+```
+</details>
+
+Enforcement example (`bep check landing-page`):
+```text
+landing-page  exposure 10.2h / 12.0h (85.0%)  WARNING: near cap
+$ echo $?    # exit code after warning
+0
+
+landing-page  exposure 12.4h / 12.0h (103.3%)  FAIL: cap exceeded
+$ echo $?    # exit code after cap breach
+1
+```
+
 ---
 
 ## Current CLI Surface
+Use `npx bep-cli@latest ...` if you have not installed it globally. The commands below show the installed binary form (`bep ...`); they are the same CLI.
+
 ```text
 bep init [options]
 bep new [id...]
@@ -110,6 +166,10 @@ Expect:
 - no backward compatibility guarantees before `v1.0.0`
 
 BEP is currently intended for early adopters and collaborators, not production stability.
+
+## Safe To Try
+- BEP only adds repo-local files/config (primarily under `.bep/`, plus optional hook config if you choose hook install).
+- To remove it, delete `.bep/` and any BEP hook entries/config you enabled during `init`.
 
 ---
 
