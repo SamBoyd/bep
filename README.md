@@ -2,7 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./img/banner-dark.png">
     <source media="(prefers-color-scheme: light)" srcset="./img/banner-light.png">
-    <img alt="Project Banner" src="./img/banner-light.png" width="830">
+    <img alt="Project Banner" src="./img/banner-light.png">
   </picture>
 </p>
 
@@ -27,7 +27,7 @@ Token-burn protection for feature work: BEP is the moment where you decide, *do 
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./img/diagram-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="./img/diagram-light.svg">
-    <img alt="FSM Diagram" src="./img/diagram-dark.png" width="830">
+    <img alt="FSM Diagram" src="./img/diagram-light.svg">
   </picture>
 </p>
 ---
