@@ -41,6 +41,9 @@ npm test
 ### Run CLI locally
 ```bash
 node dist/cli.js --help
+
+# Initialize using locally built cli.js
+node dist/cli.js init
 ```
 
 ## Contribution Workflow
