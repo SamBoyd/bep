@@ -16,7 +16,7 @@ describe("buildBetSelectionContext", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        `---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n\n## 1. Primary Assumption\nUsers want this.\n\n## 2. Rationale\nFast validation.\n`,
+        `---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n\n## 1. Primary Assumption\nUsers want this.\n\n## 2. Rationale\nFast validation.\n`,
         "utf8",
       );
       await writeFile(

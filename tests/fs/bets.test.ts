@@ -24,7 +24,7 @@ describe("fs/bets", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 
@@ -32,7 +32,7 @@ describe("fs/bets", () => {
 
       expect(result.relativePath).toBe(path.join(BETS_DIR, "landing-page.md"));
       expect(result.absolutePath).toBe(path.join(tempDir, BETS_DIR, "landing-page.md"));
-      expect(result.bet.data).toMatchObject({ id: "landing-page", status: "paused" });
+      expect(result.bet.data).toMatchObject({ id: "landing-page", status: "pending" });
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -98,16 +98,16 @@ describe("fs/bets", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 
       const file = await readBetFile(tempDir, "landing-page");
-      file.bet.data.status = "active";
+      file.bet.data.status = "passed";
       await writeBetFile(tempDir, "landing-page", file.bet);
 
       const next = await readFile(path.join(tempDir, BETS_DIR, "landing-page.md"), "utf8");
-      expect(next).toContain("status: active");
+      expect(next).toContain("status: passed");
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }

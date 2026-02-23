@@ -171,7 +171,7 @@ bep new [id...]
 bep start <id>
 bep stop <id>
 bep status
-bep check <id>
+bep check <id> [--force]
 bep hook <agent> <event>
 ```
 

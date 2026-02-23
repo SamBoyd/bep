@@ -61,9 +61,10 @@ export async function main(argv: string[]): Promise<void> {
 
   program
     .command("check <id>")
-    .description("Capture manual validation evidence for a BEP")
-    .action(async (id: string) => {
-      const exitCode = await runCheck(id);
+    .description("Capture validation evidence for a BEP")
+    .option("-f, --force", "Re-run provider check even if bet status is passed")
+    .action(async (id: string, options: { force?: boolean }) => {
+      const exitCode = await runCheck(id, { force: options.force });
       process.exitCode = exitCode;
     });
 

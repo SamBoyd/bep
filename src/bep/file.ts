@@ -1,6 +1,6 @@
 import type { LeadingIndicator } from "../providers/types";
 
-export type BetStatus = "active" | "paused" | "unknown" | (string & {});
+export type BetStatus = "pending" | "passed" 
 
 export type BetFrontmatter = {
   id?: string;

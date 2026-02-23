@@ -1,7 +1,7 @@
 import { appendFile } from "node:fs/promises";
 import path from "node:path";
 import { isValidBetId } from "../bep/id";
-import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile, writeBetFile } from "../fs/bets";
+import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile } from "../fs/bets";
 import { LOGS_DIR, ensureInitializedRepo } from "../fs/init";
 import { readState, removeActiveSessions, writeState } from "../state/state";
 
@@ -64,13 +64,10 @@ export async function runStop(id: string): Promise<number> {
   const relativeBetPath = getBetRelativePath(id);
   const absoluteBetPath = getBetAbsolutePath(rootDir, id);
 
-  let betForPause: Awaited<ReturnType<typeof readBetFile>>["bet"] | null = null;
   const hasBetFile = await pathExists(absoluteBetPath);
-
   if (hasBetFile) {
     try {
-      betForPause = (await readBetFile(rootDir, id)).bet;
-      betForPause.data.status = "paused";
+      await readBetFile(rootDir, id);
     } catch (error) {
       console.error((error as Error).message);
       return 1;
@@ -81,9 +78,6 @@ export async function runStop(id: string): Promise<number> {
   const serializedLogs = logs.map((line) => JSON.stringify(line)).join("\n").concat("\n");
 
   try {
-    if (betForPause !== null) {
-      await writeBetFile(rootDir, id, betForPause);
-    }
     await appendFile(logPath, serializedLogs, "utf8");
     await writeState(rootDir, next.state);
   } catch (error) {

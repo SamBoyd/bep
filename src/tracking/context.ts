@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { normalizeValidationStatus } from "../bep/status";
 import { listBetMarkdownFiles, readBetFile } from "../fs/bets";
 import { LOGS_DIR } from "../fs/init";
 import { readState } from "../state/state";
@@ -35,7 +36,7 @@ async function readBetCatalog(rootDir: string): Promise<BetCatalogEntry[]> {
     try {
       const parsed = await readBetFile(rootDir, fileName);
       const id = String(parsed.bet.data.id ?? fileName.replace(/\.md$/, ""));
-      const status = String(parsed.bet.data.status ?? "unknown");
+      const status = normalizeValidationStatus(parsed.bet.data.status);
       const content = parsed.bet.content || "";
 
       result.push({

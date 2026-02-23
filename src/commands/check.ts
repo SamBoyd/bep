@@ -1,7 +1,9 @@
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { isCancel, select } from "@clack/prompts";
 import { isValidBetId } from "../bep/id";
-import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile } from "../fs/bets";
+import { normalizeValidationStatus } from "../bep/status";
+import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile, writeBetFile } from "../fs/bets";
 import { EVIDENCE_DIR, ensureInitializedRepo } from "../fs/init";
 import { listRegisteredProviderTypes, resolveProviderModule } from "../providers/registry";
 import { formatManualComparisonOperator } from "../providers/manual";
@@ -35,7 +37,73 @@ function formatComparisonLabel(indicator: LeadingIndicator, observedValue: numbe
   return String(observedValue);
 }
 
-export async function runCheck(id: string): Promise<number> {
+type CheckOptions = {
+  force?: boolean;
+  rootDir?: string;
+};
+
+function hasPassedStatusInFrontmatter(markdown: string): boolean {
+  const trimmed = markdown.trimStart();
+  if (!trimmed.startsWith("---")) {
+    return false;
+  }
+
+  const lines = trimmed.split(/\r?\n/);
+  if (lines.length < 3 || lines[0]?.trim() !== "---") {
+    return false;
+  }
+
+  const endIndex = lines.slice(1).findIndex((line) => line.trim() === "---");
+  if (endIndex === -1) {
+    return false;
+  }
+
+  const frontmatterLines = lines.slice(1, endIndex + 1);
+  return frontmatterLines.some((line) => /^status:\s*passed\s*$/i.test(line.trim()));
+}
+
+async function hasPassingEvidence(rootDir: string, id: string): Promise<boolean> {
+  const evidencePath = path.join(rootDir, EVIDENCE_DIR, `${id}.json`);
+  if (!(await pathExists(evidencePath))) {
+    return false;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(await readFile(evidencePath, "utf8"));
+  } catch {
+    return false;
+  }
+
+  if (!parsed || typeof parsed !== "object") {
+    return false;
+  }
+
+  return (parsed as { meets_target?: unknown }).meets_target === true;
+}
+
+function isInteractiveTty(): boolean {
+  return process.stdin.isTTY === true && process.stdout.isTTY === true;
+}
+
+async function maybePromptUnpass(id: string): Promise<"keep" | "unpass" | "cancel"> {
+  const value = await select({
+    message: `Bet '${id}' is currently status: passed, but the forced check FAILED. Update status?`,
+    options: [
+      { label: "Keep status: passed", value: "keep" },
+      { label: "Set status: pending", value: "unpass" },
+    ],
+    initialValue: "keep",
+  });
+
+  if (isCancel(value)) {
+    return "cancel";
+  }
+
+  return value as "keep" | "unpass";
+}
+
+export async function runCheck(id: string, options: CheckOptions = {}): Promise<number> {
   if (!isValidBetId(id)) {
     console.error(`Invalid bet id '${id}'. Use lowercase id format like 'landing-page' or 'landing_page'.`);
     return 1;
@@ -43,8 +111,16 @@ export async function runCheck(id: string): Promise<number> {
 
   let rootDir: string;
   try {
-    const cwd = process.cwd();
-    ({ rootDir } = await ensureInitializedRepo(cwd));
+    if (options.rootDir) {
+      const ensured = await ensureInitializedRepo(options.rootDir);
+      if (ensured.rootDir !== options.rootDir) {
+        throw new Error(`Expected BEP repo root at ${options.rootDir}, found ${ensured.rootDir}.`);
+      }
+      rootDir = ensured.rootDir;
+    } else {
+      const cwd = process.cwd();
+      ({ rootDir } = await ensureInitializedRepo(cwd));
+    }
   } catch (error) {
     console.error((error as Error).message);
     return 1;
@@ -60,13 +136,22 @@ export async function runCheck(id: string): Promise<number> {
 
   let bet;
   try {
-    bet = (await readBetFile(rootDir, id)).bet;
+    bet = await readBetFile(rootDir, id);
   } catch (error) {
     console.error((error as Error).message);
     return 1;
   }
 
-  const rawLeadingIndicator = bet.data.leading_indicator;
+  const validationStatus = normalizeValidationStatus(bet.bet.data.status);
+  const isPassed = hasPassedStatusInFrontmatter(bet.markdown) || validationStatus === "passed";
+  if (isPassed && !options.force) {
+    if (await hasPassingEvidence(rootDir, id)) {
+      console.log(`Bet '${id}' is status: passed; skipping validation check.`);
+      return 0;
+    }
+  }
+
+  const rawLeadingIndicator = bet.bet.data.leading_indicator;
   const leadingIndicatorType = getLeadingIndicatorType(rawLeadingIndicator);
   if (!leadingIndicatorType) {
     console.error("Bet has invalid leading_indicator: missing string field 'type'.");
@@ -130,5 +215,45 @@ export async function runCheck(id: string): Promise<number> {
   console.log(
     `Captured ${parsedIndicator.value.type} evidence for '${id}' at ${relativeEvidencePath}. Result: ${checkResult.meetsTarget ? "PASS" : "FAIL"} (${comparisonLabel}).`,
   );
+
+  if (checkResult.meetsTarget) {
+    bet.bet.data.status = "passed";
+    try {
+      await writeBetFile(rootDir, id, bet.bet);
+    } catch (error) {
+      console.error(`Failed to mark bet '${id}' as passed: ${(error as Error).message}`);
+      return 1;
+    }
+
+    console.log(`Marked bet '${id}' as status: passed.`);
+    return 0;
+  }
+
+  if (options.force && isPassed) {
+    if (!isInteractiveTty()) {
+      console.log(
+        `Note: Bet '${id}' remains status: passed. To unpass, edit bets/${id}.md and set status: pending.`,
+      );
+      return 0;
+    }
+
+    const result = await maybePromptUnpass(id);
+    if (result === "cancel") {
+      console.log(`Cancelled; bet '${id}' remains status: passed.`);
+      return 0;
+    }
+
+    if (result === "unpass") {
+      bet.bet.data.status = "pending";
+      try {
+        await writeBetFile(rootDir, id, bet.bet);
+      } catch (error) {
+        console.error(`Failed to update bet '${id}' status: ${(error as Error).message}`);
+        return 1;
+      }
+      console.log(`Updated bet '${id}' to status: pending.`);
+    }
+  }
+
   return 0;
 }

@@ -18,7 +18,7 @@ describe("runHook", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        `---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n\n# Budgeted Engineering Proposal\n`,
+        `---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n\n# Budgeted Engineering Proposal\n`,
         "utf8",
       );
 
@@ -236,7 +236,7 @@ describe("runHook", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        `---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 1\n---\n`,
+        `---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 1\n---\n`,
         "utf8",
       );
       await writeFile(path.join(tempDir, LOGS_DIR, "landing-page.jsonl"), `${JSON.stringify({ duration_seconds: 3600 })}\n`, "utf8");
@@ -284,7 +284,7 @@ describe("runHook", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        `---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 1\n---\n`,
+        `---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 1\n---\n`,
         "utf8",
       );
       await writeFile(path.join(tempDir, LOGS_DIR, "landing-page.jsonl"), `${JSON.stringify({ duration_seconds: 3600 })}\n`, "utf8");
@@ -331,7 +331,7 @@ describe("runHook", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        `---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 10\n---\n`,
+        `---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 10\n---\n`,
         "utf8",
       );
       await writeFile(path.join(tempDir, LOGS_DIR, "landing-page.jsonl"), `${JSON.stringify({ duration_seconds: 1800 })}\n`, "utf8");

@@ -20,7 +20,7 @@ describe("renderNewBetMarkdown", () => {
     const parsed = matter(markdown);
     expect(parsed.data).toEqual({
       id: "landing-page",
-      status: "active",
+      status: "pending",
       created_at: "2026-02-18T00:00:00.000Z",
       leading_indicator: {
         type: "manual",

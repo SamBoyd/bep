@@ -1,5 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { normalizeValidationStatus } from "../bep/status";
 import { formatManualComparisonOperator } from "../providers/manual";
 import { pathExists, readBetFile } from "../fs/bets";
 import { BETS_DIR, EVIDENCE_DIR, LOGS_DIR, ensureInitializedRepo } from "../fs/init";
@@ -262,7 +263,7 @@ export async function runStatus(): Promise<number> {
     }
 
     const frontmatter = bet.data;
-    const status = typeof frontmatter.status === "string" ? frontmatter.status : "unknown";
+    const status = normalizeValidationStatus(frontmatter.status);
     const maxHours = parseMaxHours(frontmatter);
     const maxCalendarDays = maxHours === null ? parseMaxCalendarDays(frontmatter) : null;
     const createdAtMs = maxCalendarDays === null ? null : parseCreatedAtMs(frontmatter);

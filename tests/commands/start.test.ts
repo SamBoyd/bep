@@ -9,7 +9,7 @@ async function createTempDir(): Promise<string> {
 }
 
 describe("runStart", () => {
-  test("activates existing bet and sets status active", async () => {
+  test("activates existing bet and updates state only", async () => {
     const tempDir = await createTempDir();
     const logSpy = jest.spyOn(console, "log").mockImplementation();
     const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
@@ -19,9 +19,10 @@ describe("runStart", () => {
       const betPath = path.join(tempDir, BETS_DIR, "landing-page.md");
       await writeFile(
         betPath,
-        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n\n# Budgeted Engineering Proposal\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n\n# Budgeted Engineering Proposal\n",
         "utf8",
       );
+      const before = await readFile(betPath, "utf8");
 
       const exitCode = await runStart("landing-page");
       const state = JSON.parse(await readFile(path.join(tempDir, STATE_PATH), "utf8"));
@@ -31,7 +32,7 @@ describe("runStart", () => {
       expect(state.active).toHaveLength(1);
       expect(state.active[0].id).toBe("landing-page");
       expect(typeof state.active[0].started_at).toBe("string");
-      expect(content).toContain("status: active");
+      expect(content).toBe(before);
       expect(logSpy).toHaveBeenCalledWith("Started bet 'landing-page'.");
     } finally {
       cwdSpy.mockRestore();
@@ -55,7 +56,7 @@ describe("runStart", () => {
       );
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 
@@ -85,7 +86,7 @@ describe("runStart", () => {
       );
       await writeFile(
         path.join(tempDir, BETS_DIR, "pricing-page.md"),
-        "---\nid: pricing-page\nstatus: paused\ndefault_action: pivot\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: pricing-page\nstatus: pending\ndefault_action: pivot\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 
@@ -167,7 +168,7 @@ describe("runStart", () => {
       await writeFile(path.join(tempDir, STATE_PATH), `${JSON.stringify({ active: null }, null, 2)}\n`, "utf8");
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 
@@ -195,7 +196,7 @@ describe("runStart", () => {
       cwdSpy.mockReturnValue(nestedDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 

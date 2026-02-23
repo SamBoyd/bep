@@ -6,8 +6,8 @@ const context: SelectionContext = {
   payload: null,
   activeBetIds: ["landing-page"],
   bets: [
-    { id: "landing-page", status: "active", summary: "landing" },
-    { id: "onboarding-v2", status: "paused", summary: "onboarding" },
+    { id: "landing-page", status: "pending", summary: "landing" },
+    { id: "onboarding-v2", status: "pending", summary: "onboarding" },
   ],
   recentAttribution: [],
 };

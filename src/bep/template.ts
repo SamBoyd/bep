@@ -16,7 +16,7 @@ export type NewBetTemplateInput = {
 export function renderNewBetMarkdown(input: NewBetTemplateInput): string {
   const frontmatter: Record<string, unknown> = {
     id: input.id,
-    status: "active",
+    status: "pending",
     created_at: input.createdAt,
     leading_indicator: input.leadingIndicator,
   };

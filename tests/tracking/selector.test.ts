@@ -12,8 +12,8 @@ const baseContext: SelectionContext = {
   },
   activeBetIds: ["landing-page"],
   bets: [
-    { id: "landing-page", status: "active", summary: "landing work" },
-    { id: "onboarding-v2", status: "paused", summary: "onboarding" },
+    { id: "landing-page", status: "pending", summary: "landing work" },
+    { id: "onboarding-v2", status: "pending", summary: "onboarding" },
   ],
   recentAttribution: [],
 };

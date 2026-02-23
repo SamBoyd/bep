@@ -59,7 +59,7 @@ describe("runStatus", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 
@@ -79,6 +79,31 @@ describe("runStatus", () => {
     }
   });
 
+  test("normalizes legacy active/paused statuses to pending", async () => {
+    const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+    const logSpy = jest.spyOn(console, "log").mockImplementation();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "utf8",
+      );
+
+      const exitCode = await runStatus();
+      const output = getPrintedOutput(logSpy);
+
+      expect(exitCode).toBe(0);
+      expect(output).toMatch(/landing-page\s+pending\s+/);
+    } finally {
+      cwdSpy.mockRestore();
+      logSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
   test("sums multiple log lines and computes cap warnings", async () => {
     const tempDir = await createTempDir();
     const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
@@ -89,12 +114,12 @@ describe("runStatus", () => {
 
       await writeFile(
         path.join(tempDir, BETS_DIR, "alpha.md"),
-        "---\nid: alpha\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 4\n---\n",
+        "---\nid: alpha\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 4\n---\n",
         "utf8",
       );
       await writeFile(
         path.join(tempDir, BETS_DIR, "beta.md"),
-        "---\nid: beta\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 2\n---\n",
+        "---\nid: beta\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 2\n---\n",
         "utf8",
       );
 
@@ -137,7 +162,7 @@ describe("runStatus", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 8\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 8\n---\n",
         "utf8",
       );
       await writeFile(
@@ -189,7 +214,7 @@ describe("runStatus", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "conversion-rate.md"),
-        "---\nid: conversion-rate\nstatus: active\ndefault_action: narrow\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 8\n---\n",
+        "---\nid: conversion-rate\nstatus: pending\ndefault_action: narrow\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 8\n---\n",
         "utf8",
       );
       await writeFile(
@@ -239,7 +264,7 @@ describe("runStatus", () => {
       await rm(path.join(tempDir, STATE_PATH), { force: true });
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 
@@ -288,7 +313,7 @@ describe("runStatus", () => {
       const createdAt = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
       await writeFile(
         path.join(tempDir, BETS_DIR, "calendar-cap.md"),
-        `---\nid: calendar-cap\nstatus: active\ndefault_action: kill\ncreated_at: ${createdAt}\nmax_calendar_days: 10\n---\n`,
+        `---\nid: calendar-cap\nstatus: pending\ndefault_action: kill\ncreated_at: ${createdAt}\nmax_calendar_days: 10\n---\n`,
         "utf8",
       );
 
@@ -315,7 +340,7 @@ describe("runStatus", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
       await writeFile(path.join(tempDir, LOGS_DIR, "landing-page.jsonl"), "not-json\n", "utf8");
@@ -342,7 +367,7 @@ describe("runStatus", () => {
       await initRepo(tempDir);
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: paused\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
       const nestedDir = path.join(tempDir, "services", "api");

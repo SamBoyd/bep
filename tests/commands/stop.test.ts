@@ -26,7 +26,7 @@ describe("runStop", () => {
     }
   });
 
-  test("stops active session, logs exposure, and sets status paused", async () => {
+  test("stops active session and logs exposure (does not mutate bet markdown)", async () => {
     const tempDir = await createTempDir();
     const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
     const logSpy = jest.spyOn(console, "log").mockImplementation();
@@ -42,9 +42,10 @@ describe("runStop", () => {
       const betPath = path.join(tempDir, BETS_DIR, "landing-page.md");
       await writeFile(
         betPath,
-        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
+      const before = await readFile(betPath, "utf8");
 
       const exitCode = await runStop("landing-page");
       const state = JSON.parse(await readFile(path.join(tempDir, STATE_PATH), "utf8"));
@@ -59,7 +60,7 @@ describe("runStop", () => {
 
       expect(exitCode).toBe(0);
       expect(state.active).toEqual([]);
-      expect(bet).toContain("status: paused");
+      expect(bet).toBe(before);
       expect(logLines).toHaveLength(1);
       expect(entry.id).toBe("landing-page");
       expect(entry.started_at).toBe("2026-02-18T00:00:00.000Z");
@@ -97,7 +98,7 @@ describe("runStop", () => {
 
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 
@@ -194,7 +195,7 @@ describe("runStop", () => {
       );
       await writeFile(
         path.join(tempDir, BETS_DIR, "landing-page.md"),
-        "---\nid: landing-page\nstatus: active\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
+        "---\nid: landing-page\nstatus: pending\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n",
         "utf8",
       );
 
@@ -206,7 +207,7 @@ describe("runStop", () => {
       expect(exitCode).toBe(1);
       expect(beforeState).toBe(afterState);
       await expect(access(path.join(tempDir, LOGS_DIR, "landing-page.jsonl"))).rejects.toThrow();
-      expect(bet).toContain("status: active");
+      expect(bet).toContain("status: pending");
       expect(errorSpy).toHaveBeenCalledWith("Active session for 'landing-page' has invalid started_at: 'not-a-date'.");
     } finally {
       cwdSpy.mockRestore();
