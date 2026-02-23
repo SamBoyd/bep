@@ -45,7 +45,7 @@ Validation checks run via a provider configured in `.bep.providers.json` (or by 
 
 ### 1) Install BEP
 ```bash
-npx @samboyd/bep-cli@latest --help
+npm install -g @samboyd/bep-cli@latest 
 ```
 
 ### 2) Initialize in your repo
