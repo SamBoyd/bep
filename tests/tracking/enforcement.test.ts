@@ -44,6 +44,34 @@ describe("evaluateCapGate", () => {
     }
   });
 
+  test("skips cap enforcement when bet status is passed", async () => {
+    const tempDir = await createTempDir();
+    const context: SelectionContext = {
+      ...baseContext,
+      bets: [{ id: "landing-page", status: "passed", summary: "x" }],
+    };
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        `---\nid: landing-page\nstatus: passed\ndefault_action: kill\ncreated_at: 2026-02-20T00:00:00.000Z\nmax_hours: 1\n---\n`,
+        "utf8",
+      );
+      await writeFile(
+        path.join(tempDir, LOGS_DIR, "landing-page.jsonl"),
+        `${JSON.stringify({ duration_seconds: 3600 })}\n`,
+        "utf8",
+      );
+
+      const result = await evaluateCapGate(tempDir, context, baseDecision);
+      expect(result.overCap).toBe(false);
+      expect(result.reason).toBe("bet_passed");
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
   test("max_hours at cap is blocked", async () => {
     const tempDir = await createTempDir();
     try {

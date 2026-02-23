@@ -1,4 +1,4 @@
-import { appendFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, appendFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { runHook } from "../../src/commands/hook";
@@ -269,6 +269,54 @@ describe("runHook", () => {
       expect(blockEntry.enforced).toBe(true);
       expect(output[0]).toContain("\"continue\":false");
       expect(output[0]).toContain("at cap");
+    } finally {
+      cwdSpy.mockRestore();
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("does not deny user-prompt-submit when attributed bet is passed (even if at cap)", async () => {
+    const tempDir = await createTempDir();
+    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tempDir);
+    const output: string[] = [];
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "landing-page.md"),
+        `---\nid: landing-page\nstatus: passed\ndefault_action: kill\ncreated_at: 2026-02-18T00:00:00.000Z\nmax_hours: 1\n---\n`,
+        "utf8",
+      );
+      await writeFile(
+        path.join(tempDir, LOGS_DIR, "landing-page.jsonl"),
+        `${JSON.stringify({ duration_seconds: 3600 })}\n`,
+        "utf8",
+      );
+
+      const applySpy = jest.fn().mockResolvedValue({
+        applied: true,
+        appliedSteps: ["start:landing-page"],
+        decision: { action: "start", bet_id: "landing-page", confidence: 0.95, reason: "match" },
+      });
+
+      const exitCode = await runHook("claude-code", "user-prompt-submit", {
+        readInput: async () => JSON.stringify({ session_id: "s-passed" }),
+        select: async (): Promise<SelectionResult> => ({
+          ok: true,
+          rawText: "",
+          decision: { action: "start", bet_id: "landing-page", confidence: 0.95, reason: "match" },
+        }),
+        apply: applySpy,
+        append: appendFile,
+        writeOutput: (value: string) => {
+          output.push(value);
+        },
+      });
+
+      expect(exitCode).toBe(0);
+      expect(applySpy).toHaveBeenCalled();
+      expect(output[0]).toBe("{\"continue\":true}");
+      await expect(access(path.join(tempDir, LOGS_DIR, "agent-blocks.jsonl"))).rejects.toThrow();
     } finally {
       cwdSpy.mockRestore();
       await rm(tempDir, { recursive: true, force: true });

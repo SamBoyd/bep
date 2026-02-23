@@ -134,6 +134,15 @@ export async function evaluateCapGate(
     };
   }
 
+  const catalogEntry = context.bets.find((bet) => bet.id === targetBetId);
+  if (catalogEntry?.status === "passed") {
+    return {
+      targetBetId,
+      overCap: false,
+      reason: "bet_passed",
+    };
+  }
+
   let bet;
   try {
     bet = (await readBetFile(rootDir, targetBetId)).bet;
