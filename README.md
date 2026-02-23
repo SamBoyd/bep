@@ -45,7 +45,7 @@ Validation checks run via a provider configured in `.bep.providers.json` (or by 
 
 ### 1) Install BEP
 ```bash
-npx bep-cli@latest --help
+npx @samboyd/bep-cli@latest --help
 ```
 
 ### 2) Initialize in your repo
@@ -163,7 +163,7 @@ Use this as a system-style rule for Claude Code when working on a bet:
 ---
 
 ## CLI surface (current)
-Use `npx bep-cli@latest ...` if you have not installed it globally.
+Use `npx @samboyd/bep-cli@latest ...` if you have not installed it globally.
 
 ```text
 bep init [options]

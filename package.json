@@ -1,9 +1,12 @@
 {
-  "name": "bep-cli",
+  "name": "@samboyd/bep-cli",
   "version": "0.1.0",
   "description": "BEP: Budgeted Engineering Proposals (repo-native pre-commitment CLI)",
   "license": "MIT",
   "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "bep-cli": "dist/cli.js",
     "bep": "dist/cli.js"
