@@ -47,7 +47,7 @@ export function createInitialWizardDraft(): WizardDraftValues {
 }
 
 export function getWizardSteps(providerType?: LeadingIndicatorType): WizardStepId[] {
-  const steps: WizardStepId[] = ["bet_name", "cap_type", "cap_value", "leading_indicator_type"];
+  const steps: WizardStepId[] = ["bet_name", "primary_assumption", "rationale", "leading_indicator_type"];
 
   if (providerType === "manual") {
     steps.push("manual_operator", "manual_target");
@@ -55,7 +55,7 @@ export function getWizardSteps(providerType?: LeadingIndicatorType): WizardStepI
     steps.push("mixpanel_project_id", "mixpanel_workspace_id", "mixpanel_bookmark_id", "mixpanel_operator", "mixpanel_target");
   }
 
-  steps.push("primary_assumption", "rationale", "validation_plan", "notes");
+  steps.push("cap_type", "cap_value", "validation_plan", "notes");
   return steps;
 }
 

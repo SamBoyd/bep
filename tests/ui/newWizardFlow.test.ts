@@ -7,20 +7,50 @@ import {
 } from "../../src/ui/ink/newWizard/flow.js";
 
 describe("new wizard flow helpers", () => {
-  test("includes bet name as the first wizard step", () => {
-    expect(getWizardSteps()[0]).toBe("bet_name");
+  test("uses a natural base step order", () => {
+    expect(getWizardSteps()).toEqual([
+      "bet_name",
+      "primary_assumption",
+      "rationale",
+      "leading_indicator_type",
+      "cap_type",
+      "cap_value",
+      "validation_plan",
+      "notes",
+    ]);
   });
 
   test("inserts manual provider steps when manual is selected", () => {
-    expect(getWizardSteps("manual")).toContain("manual_operator");
-    expect(getWizardSteps("manual")).toContain("manual_target");
-    expect(getWizardSteps("manual")).not.toContain("mixpanel_project_id");
+    expect(getWizardSteps("manual")).toEqual([
+      "bet_name",
+      "primary_assumption",
+      "rationale",
+      "leading_indicator_type",
+      "manual_operator",
+      "manual_target",
+      "cap_type",
+      "cap_value",
+      "validation_plan",
+      "notes",
+    ]);
   });
 
   test("inserts mixpanel provider steps when mixpanel is selected", () => {
-    expect(getWizardSteps("mixpanel")).toContain("mixpanel_project_id");
-    expect(getWizardSteps("mixpanel")).toContain("mixpanel_target");
-    expect(getWizardSteps("mixpanel")).not.toContain("manual_operator");
+    expect(getWizardSteps("mixpanel")).toEqual([
+      "bet_name",
+      "primary_assumption",
+      "rationale",
+      "leading_indicator_type",
+      "mixpanel_project_id",
+      "mixpanel_workspace_id",
+      "mixpanel_bookmark_id",
+      "mixpanel_operator",
+      "mixpanel_target",
+      "cap_type",
+      "cap_value",
+      "validation_plan",
+      "notes",
+    ]);
   });
 
   test("changing cap type clears cap value", () => {
