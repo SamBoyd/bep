@@ -40,6 +40,17 @@ Format the suggestion as:
 
 We work in small git-committable chunks, involving USER for checking our changes and letting them commit
 
+# Test migration status
+
+The Jest suite is currently mid-migration to ESM-native test patterns.
+
+- `tests/jest.setup.ts` temporarily restores the `jest` global to preserve existing test style during migration.
+- When touching a test file, prefer migrating it to ESM-native usage in that same change:
+  - `import { jest } from "@jest/globals"` (instead of relying on the global)
+  - Use `await jest.unstable_mockModule(...)` + dynamic `import(...)` for module mocks in ESM tests
+  - Avoid `jest.requireActual(...)` in ESM tests; use `await import(...)` for actual modules
+- Do not remove `tests/jest.setup.ts` until the suite no longer depends on the global `jest` fallback.
+
 # Technology stack (keep current)
 
 Maintain this section as the source of truth for the repo's major technologies.
