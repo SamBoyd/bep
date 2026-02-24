@@ -67,3 +67,30 @@ Use Conventional Commits v1.0.0: `<type>(<scope>): <description>`. After complet
 Work in small, git-committable chunks. Present changes for review before committing; don't auto-commit.
 
 Update `AGENTS.md` (the project layout and technology stack sections) whenever directories, entrypoints, major libraries, or config locations change.
+
+## PLAN FORMAT
+
+When creating a plan for a code change, use compact EARS-style statements (Easy Approach to Requirements Syntax) so each step is clear, testable, and easy to review.
+
+Use the EARS patterns in plan items:
+
+- Ubiquitous (always true): `The agent shall <action/outcome>.`
+- State-driven (applies while a condition remains true): `While <condition>, the agent shall <action/outcome>.`
+- Event-driven (triggered action): `When <trigger>, the agent shall <action/outcome>.`
+- Optional feature/scope: `Where <feature/scope applies>, the agent shall <action/outcome>.`
+- Unwanted behavior / contingency: `If <risk/problem>, then the agent shall <mitigation/fallback>.`
+- Complex (combine state + trigger when useful): `While <condition>, when <trigger>, the agent shall <action/outcome>.`
+
+Plan writing rules:
+
+- Size the plan to the change: use as few items as needed for small fixes, and break larger changes into multiple git-committable chunks.
+- Keep one concrete outcome per item (code change, test, verification, or user checkpoint).
+- Include at least one verification item (`test`, `lint`, or targeted manual validation) when behavior changes.
+- Include a USER checkpoint item for major or risky changes, consistent with the workflow above.
+- Use repo-specific terms (files/commands/modules) instead of vague nouns.
+
+Example (shape only):
+
+- `When adding a new CLI command, the agent shall update command registration in src/cli.ts.`
+- `Where the command changes persisted state, the agent shall add or update state module tests.`
+- `If test execution is blocked by environment limits, then the agent shall report what was not run and why.`
