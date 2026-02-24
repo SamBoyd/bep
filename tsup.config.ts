@@ -3,6 +3,9 @@ import { defineConfig } from "tsup";
 export default defineConfig({
   entry: ["src/cli.ts"],
   format: ["esm"],
+  platform: 'node',
+  target: 'node22',
+  splitting: false,
   external: ["@clack/prompts", "commander", "gray-matter", "ink", "react"],
   sourcemap: true,
   clean: true,

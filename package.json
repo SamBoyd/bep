@@ -4,6 +4,7 @@
   "description": "BEP: Budgeted Engineering Proposals (repo-native pre-commitment CLI)",
   "license": "MIT",
   "type": "module",
+  "engines": { "node": ">=22" },
   "publishConfig": {
     "access": "public"
   },
