@@ -31,8 +31,8 @@ export async function main(argv: string[]): Promise<void> {
   program
     .command("new [id...]")
     .description("Create a new BEP markdown file")
-    .action(async (idParts?: string[]) => {
-      const id = idParts && idParts.length > 0 ? ["new", ...idParts].join(" ") : undefined;
+    .action(async (args?: string[]) => {
+      const id = args && args.length > 0 ? [...args].join(" ") : undefined;
       const exitCode = await runNew(id);
       process.exitCode = exitCode;
     });
