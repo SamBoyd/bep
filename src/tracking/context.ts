@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { normalizeValidationStatus } from "../bep/status";
-import { listBetMarkdownFiles, readBetFile } from "../fs/bets";
-import { LOGS_DIR } from "../fs/init";
-import { readState } from "../state/state";
-import type { AttributionHistoryEntry, BetCatalogEntry, HookEvent, ParsedHookPayload, SelectionContext } from "./types";
+import { normalizeValidationStatus } from "../bep/status.js";
+import { listBetMarkdownFiles, readBetFile } from "../fs/bets.js";
+import { LOGS_DIR } from "../fs/init.js";
+import { readState } from "../state/state.js";
+import type { AttributionHistoryEntry, BetCatalogEntry, HookEvent, ParsedHookPayload, SelectionContext } from "./types.js";
 
 const MAX_BET_SUMMARY_CHARS = 800;
 const MAX_HISTORY_ENTRIES = 20;

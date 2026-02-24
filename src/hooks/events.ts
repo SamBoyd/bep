@@ -1,4 +1,4 @@
-import type { HookEvent, ParsedHookPayload } from "../tracking/types";
+import type { HookEvent, ParsedHookPayload } from "../tracking/types.js";
 
 const MAX_FIELD_LENGTH = 2000;
 

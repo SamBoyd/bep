@@ -2,7 +2,8 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: ["src/cli.ts"],
-  format: ["cjs"],
+  format: ["esm"],
+  external: ["@clack/prompts", "commander", "gray-matter", "ink", "react"],
   sourcemap: true,
   clean: true,
   dts: false,
@@ -10,4 +11,3 @@ export default defineConfig({
     js: "#!/usr/bin/env node",
   },
 });
-

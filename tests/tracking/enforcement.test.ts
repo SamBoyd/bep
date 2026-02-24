@@ -1,9 +1,9 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { evaluateCapGate } from "../../src/tracking/enforcement";
-import type { SelectionContext, SelectionDecision } from "../../src/tracking/types";
-import { BETS_DIR, LOGS_DIR, initRepo } from "../../src/fs/init";
+import { evaluateCapGate } from "../../src/tracking/enforcement.js";
+import type { SelectionContext, SelectionDecision } from "../../src/tracking/types.js";
+import { BETS_DIR, LOGS_DIR, initRepo } from "../../src/fs/init.js";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-enforcement-test-"));

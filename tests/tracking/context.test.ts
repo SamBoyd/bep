@@ -1,8 +1,8 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildBetSelectionContext } from "../../src/tracking/context";
-import { BETS_DIR, LOGS_DIR, STATE_PATH, initRepo } from "../../src/fs/init";
+import { buildBetSelectionContext } from "../../src/tracking/context.js";
+import { BETS_DIR, LOGS_DIR, STATE_PATH, initRepo } from "../../src/fs/init.js";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-tracking-context-test-"));

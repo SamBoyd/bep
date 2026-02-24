@@ -1,5 +1,5 @@
 import path from "node:path";
-import { resolveHookCommandBase } from "../../src/hooks/install";
+import { resolveHookCommandBase } from "../../src/hooks/install.js";
 
 describe("resolveHookCommandBase", () => {
   test("resolves relative argv path against startDir", () => {

@@ -1,5 +1,5 @@
 import { confirm, isCancel, select } from "@clack/prompts";
-import { type HookAgent, formatAgentLabel } from "../hooks/types";
+import { type HookAgent, formatAgentLabel } from "../hooks/types.js";
 
 const COMING_SOON_AGENTS: HookAgent[] = ["cursor", "codex", "windsurf"];
 

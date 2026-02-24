@@ -1,13 +1,13 @@
 import { appendFile } from "node:fs/promises";
 import path from "node:path";
-import { findInitializedRepo, LOGS_DIR } from "../fs/init";
-import { parseHookStdin, readHookStdin } from "../hooks/events";
-import { isSupportedHookAgent } from "../hooks/types";
-import { buildBetSelectionContext } from "../tracking/context";
-import { applySelectionDecision } from "../tracking/decision";
-import { evaluateCapGate } from "../tracking/enforcement";
-import { selectBetWithClaude } from "../tracking/selector";
-import type { AppliedDecisionResult, HookEvent, SelectionResult } from "../tracking/types";
+import { findInitializedRepo, LOGS_DIR } from "../fs/init.js";
+import { parseHookStdin, readHookStdin } from "../hooks/events.js";
+import { isSupportedHookAgent } from "../hooks/types.js";
+import { buildBetSelectionContext } from "../tracking/context.js";
+import { applySelectionDecision } from "../tracking/decision.js";
+import { evaluateCapGate } from "../tracking/enforcement.js";
+import { selectBetWithClaude } from "../tracking/selector.js";
+import type { AppliedDecisionResult, HookEvent, SelectionResult } from "../tracking/types.js";
 
 type HookLogEntry = {
   agent: "claude-code";

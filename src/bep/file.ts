@@ -1,4 +1,4 @@
-import type { LeadingIndicator } from "../providers/types";
+import type { LeadingIndicator } from "../providers/types.js";
 
 export type BetStatus = "pending" | "passed" 
 

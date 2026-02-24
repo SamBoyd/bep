@@ -1,9 +1,9 @@
 import { isCancel, select, text } from "@clack/prompts";
-import { listRegisteredProviderTypes, resolveProviderModule } from "../providers/registry";
-import type { ManualSetupPromptClient, ManualOperatorPromptResult, ManualTargetPromptResult } from "../providers/manual";
-import { createClackMixpanelSetupPromptClient } from "../providers/mixpanel";
-import type { MixpanelSetupPromptClient } from "../providers/mixpanel";
-import type { LeadingIndicator, LeadingIndicatorType, ManualComparisonOperator } from "../providers/types";
+import { listRegisteredProviderTypes, resolveProviderModule } from "../providers/registry.js";
+import type { ManualSetupPromptClient, ManualOperatorPromptResult, ManualTargetPromptResult } from "../providers/manual.js";
+import { createClackMixpanelSetupPromptClient } from "../providers/mixpanel.js";
+import type { MixpanelSetupPromptClient } from "../providers/mixpanel.js";
+import type { LeadingIndicator, LeadingIndicatorType, ManualComparisonOperator } from "../providers/types.js";
 
 const BACK_VALUE = "__back__";
 const DIM = "\u001b[2m";

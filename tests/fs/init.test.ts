@@ -9,8 +9,8 @@ import {
   ensureInitializedRepo,
   findInitializedRepo,
   initRepo,
-} from "../../src/fs/init";
-import { PROVIDER_CONFIG_PATH } from "../../src/providers/config";
+} from "../../src/fs/init.js";
+import { PROVIDER_CONFIG_PATH } from "../../src/providers/config.js";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-init-test-"));

@@ -1,5 +1,5 @@
 import matter from "gray-matter";
-import { renderNewBetMarkdown } from "../../src/bep/template";
+import { renderNewBetMarkdown } from "../../src/bep/template.js";
 
 describe("renderNewBetMarkdown", () => {
   test("includes required frontmatter fields", () => {

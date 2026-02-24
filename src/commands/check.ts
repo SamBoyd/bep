@@ -1,13 +1,13 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { isCancel, select } from "@clack/prompts";
-import { isValidBetId } from "../bep/id";
-import { normalizeValidationStatus } from "../bep/status";
-import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile, writeBetFile } from "../fs/bets";
-import { EVIDENCE_DIR, ensureInitializedRepo } from "../fs/init";
-import { listRegisteredProviderTypes, resolveProviderModule } from "../providers/registry";
-import { formatManualComparisonOperator } from "../providers/manual";
-import type { LeadingIndicator } from "../providers/types";
+import { isValidBetId } from "../bep/id.js";
+import { normalizeValidationStatus } from "../bep/status.js";
+import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile, writeBetFile } from "../fs/bets.js";
+import { EVIDENCE_DIR, ensureInitializedRepo } from "../fs/init.js";
+import { listRegisteredProviderTypes, resolveProviderModule } from "../providers/registry.js";
+import { formatManualComparisonOperator } from "../providers/manual.js";
+import type { LeadingIndicator } from "../providers/types.js";
 
 type EvidenceSnapshot = {
   id: string;

@@ -1,4 +1,4 @@
-import { isValidBetId } from "../../src/bep/id";
+import { isValidBetId } from "../../src/bep/id.js";
 
 describe("isValidBetId", () => {
   test("accepts lowercase ids with hyphen or underscore separators", () => {

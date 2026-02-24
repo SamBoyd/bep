@@ -1,10 +1,10 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { normalizeValidationStatus } from "../bep/status";
-import { formatManualComparisonOperator } from "../providers/manual";
-import { pathExists, readBetFile } from "../fs/bets";
-import { BETS_DIR, EVIDENCE_DIR, LOGS_DIR, ensureInitializedRepo } from "../fs/init";
-import { readState } from "../state/state";
+import { normalizeValidationStatus } from "../bep/status.js";
+import { formatManualComparisonOperator } from "../providers/manual.js";
+import { pathExists, readBetFile } from "../fs/bets.js";
+import { BETS_DIR, EVIDENCE_DIR, LOGS_DIR, ensureInitializedRepo } from "../fs/init.js";
+import { readState } from "../state/state.js";
 
 type StatusRow = {
   id: string;

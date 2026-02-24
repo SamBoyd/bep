@@ -1,6 +1,6 @@
-import { manualProviderModule } from "./manual";
-import { mixpanelProviderModule } from "./mixpanel";
-import type { LeadingIndicator, ProviderModule, ProviderRegistry } from "./types";
+import { manualProviderModule } from "./manual.js";
+import { mixpanelProviderModule } from "./mixpanel.js";
+import type { LeadingIndicator, ProviderModule, ProviderRegistry } from "./types.js";
 
 export const providerRegistry: ProviderRegistry = {
   manual: manualProviderModule,

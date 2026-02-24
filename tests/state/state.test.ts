@@ -1,9 +1,9 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { STATE_PATH } from "../../src/fs/init";
-import { initRepo } from "../../src/fs/init";
-import { addActiveSession, readState, removeActiveSessions, writeState } from "../../src/state/state";
+import { STATE_PATH } from "../../src/fs/init.js";
+import { initRepo } from "../../src/fs/init.js";
+import { addActiveSession, readState, removeActiveSessions, writeState } from "../../src/state/state.js";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-state-test-"));

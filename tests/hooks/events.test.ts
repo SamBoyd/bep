@@ -1,4 +1,4 @@
-import { parseHookStdin } from "../../src/hooks/events";
+import { parseHookStdin } from "../../src/hooks/events.js";
 
 describe("parseHookStdin", () => {
   test("parses user prompt submit payload", () => {

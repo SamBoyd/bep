@@ -1,7 +1,7 @@
-import { isValidBetId } from "../bep/id";
-import { runStart } from "../commands/start";
-import { runStop } from "../commands/stop";
-import type { AppliedDecisionResult, SelectionDecision, SelectionContext } from "./types";
+import { isValidBetId } from "../bep/id.js";
+import { runStart } from "../commands/start.js";
+import { runStop } from "../commands/stop.js";
+import type { AppliedDecisionResult, SelectionDecision, SelectionContext } from "./types.js";
 
 const DEFAULT_CONFIDENCE_THRESHOLD = 0.75;
 

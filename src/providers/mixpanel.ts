@@ -1,8 +1,8 @@
 import { Buffer } from "node:buffer";
 
 import { isCancel, select, text } from "@clack/prompts";
-import { evaluateManualComparison } from "./manual";
-import { getMixpanelServiceAccountCreds, readProviderConfig } from "./config";
+import { evaluateManualComparison } from "./manual.js";
+import { getMixpanelServiceAccountCreds, readProviderConfig } from "./config.js";
 import type {
   ManualComparisonOperator,
   MixpanelLeadingIndicator,
@@ -12,7 +12,7 @@ import type {
   ProviderSetupAdapter,
   ProviderSetupContext,
   ProviderSetupResult,
-} from "./types";
+} from "./types.js";
 
 const BACK_VALUE = "__back__";
 const DIM = "\u001b[2m";

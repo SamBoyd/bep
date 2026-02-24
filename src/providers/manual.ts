@@ -1,5 +1,5 @@
 import { select, text, isCancel } from "@clack/prompts";
-import { runCheckPrompt } from "../ui/checkPrompt";
+import { runCheckPrompt } from "../ui/checkPrompt.js";
 import type {
   ManualComparisonOperator,
   ManualLeadingIndicator,
@@ -9,7 +9,7 @@ import type {
   ProviderSetupAdapter,
   ProviderSetupContext,
   ProviderSetupResult,
-} from "./types";
+} from "./types.js";
 
 const BACK_VALUE = "__back__";
 const DIM = "\u001b[2m";

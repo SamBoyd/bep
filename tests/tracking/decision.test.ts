@@ -1,5 +1,5 @@
-import { applySelectionDecision } from "../../src/tracking/decision";
-import type { SelectionContext } from "../../src/tracking/types";
+import { applySelectionDecision } from "../../src/tracking/decision.js";
+import type { SelectionContext } from "../../src/tracking/types.js";
 
 const context: SelectionContext = {
   event: "post-tool-use",

@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { isValidBetId } from "../bep/id";
-import { pathExists, readBetFile } from "../fs/bets";
-import { LOGS_DIR } from "../fs/init";
-import type { SelectionContext, SelectionDecision } from "./types";
+import { isValidBetId } from "../bep/id.js";
+import { pathExists, readBetFile } from "../fs/bets.js";
+import { LOGS_DIR } from "../fs/init.js";
+import type { SelectionContext, SelectionDecision } from "./types.js";
 
 export type CapType = "max_hours" | "max_calendar_days";
 

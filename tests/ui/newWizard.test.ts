@@ -5,9 +5,9 @@ import {
   type MarkdownSectionPromptResult,
   type NumberPromptResult,
   type WizardPromptClient,
-} from "../../src/ui/newWizard";
-import type { ManualOperatorPromptResult, ManualTargetPromptResult } from "../../src/providers/manual";
-import type { ManualComparisonOperator } from "../../src/providers/types";
+} from "../../src/ui/newWizard.js";
+import type { ManualOperatorPromptResult, ManualTargetPromptResult } from "../../src/providers/manual.js";
+import type { ManualComparisonOperator } from "../../src/providers/types.js";
 
 type ScriptedStep =
   | { type: "capType"; result: CapTypePromptResult }

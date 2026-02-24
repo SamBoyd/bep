@@ -1,7 +1,7 @@
-import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile } from "../fs/bets";
-import { isValidBetId } from "../bep/id";
-import { ensureInitializedRepo } from "../fs/init";
-import { addActiveSession, readState, writeState } from "../state/state";
+import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile } from "../fs/bets.js";
+import { isValidBetId } from "../bep/id.js";
+import { ensureInitializedRepo } from "../fs/init.js";
+import { addActiveSession, readState, writeState } from "../state/state.js";
 
 export async function runStart(id: string): Promise<number> {
   if (!isValidBetId(id)) {

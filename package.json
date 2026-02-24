@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "BEP: Budgeted Engineering Proposals (repo-native pre-commitment CLI)",
   "license": "MIT",
-  "type": "commonjs",
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },
@@ -18,12 +18,14 @@
     "build": "tsup",
     "prepack": "npm run build",
     "pretest": "npm run build",
-    "test": "jest"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js"
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0",
     "commander": "^12.1.0",
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "ink": "^6.8.0",
+    "react": "^19.2.4"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

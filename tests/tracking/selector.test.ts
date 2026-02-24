@@ -1,8 +1,8 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { selectBetWithClaude } from "../../src/tracking/selector";
-import type { SelectionContext } from "../../src/tracking/types";
+import { selectBetWithClaude } from "../../src/tracking/selector.js";
+import type { SelectionContext } from "../../src/tracking/types.js";
 
 const baseContext: SelectionContext = {
   event: "user-prompt-submit",

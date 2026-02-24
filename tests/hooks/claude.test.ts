@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { installClaudeCodeHooks } from "../../src/hooks/claude";
+import { installClaudeCodeHooks } from "../../src/hooks/claude.js";
 
 const TEST_HOOK_COMMAND_BASE = "/tmp/dev-bep/dist/cli.js";
 

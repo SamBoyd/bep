@@ -1,9 +1,9 @@
-jest.mock("../src/commands/new", () => ({
+await jest.unstable_mockModule("../src/commands/new.js", () => ({
   runNew: jest.fn(),
 }));
 
-import { main } from "../src/cli";
-import { runNew } from "../src/commands/new";
+const { main } = await import("../src/cli.js");
+const { runNew } = await import("../src/commands/new.js");
 
 const mockedRunNew = runNew as jest.MockedFunction<typeof runNew>;
 

@@ -1,6 +1,6 @@
-import { initRepo } from "../fs/init";
-import { installAgentHooks } from "../hooks/install";
-import { runInitHookPrompt } from "../ui/initHooks";
+import { initRepo } from "../fs/init.js";
+import { installAgentHooks } from "../hooks/install.js";
+import { runInitHookPrompt } from "../ui/initHooks.js";
 
 export type RunInitOptions = {
   installHooks?: boolean;

@@ -1,21 +1,20 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { runNew } from "../../src/commands/new";
-import { BETS_DIR, initRepo } from "../../src/fs/init";
-import { runNewWizard } from "../../src/ui/newWizard";
-import { promptNewBetName } from "../../src/ui/newBetName";
-
-jest.mock("../../src/ui/newWizard", () => ({
+await jest.unstable_mockModule("../../src/ui/newWizard.js", () => ({
   runNewWizard: jest.fn(),
 }));
-jest.mock("../../src/ui/newBetName", () => {
-  const actual = jest.requireActual("../../src/ui/newBetName");
-  return {
-    ...actual,
-    promptNewBetName: jest.fn(),
-  };
-});
+await jest.unstable_mockModule("../../src/ui/newBetName.js", () => ({
+  normalizeBetName(value: string) {
+    return value.trim().replace(/\s+/g, "_").toLowerCase();
+  },
+  promptNewBetName: jest.fn(),
+}));
+
+const { runNew } = await import("../../src/commands/new.js");
+const { BETS_DIR, initRepo } = await import("../../src/fs/init.js");
+const { runNewWizard } = await import("../../src/ui/newWizard.js");
+const { promptNewBetName } = await import("../../src/ui/newBetName.js");
 
 const mockedRunNewWizard = runNewWizard as jest.MockedFunction<typeof runNewWizard>;
 const mockedPromptNewBetName = promptNewBetName as jest.MockedFunction<typeof promptNewBetName>;

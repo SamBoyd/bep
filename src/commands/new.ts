@@ -1,10 +1,10 @@
 import { access, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { isValidBetId } from "../bep/id";
-import { renderNewBetMarkdown } from "../bep/template";
-import { BETS_DIR, ensureInitializedRepo } from "../fs/init";
-import { runNewWizard } from "../ui/newWizard";
-import { normalizeBetName, promptNewBetName } from "../ui/newBetName";
+import { isValidBetId } from "../bep/id.js";
+import { renderNewBetMarkdown } from "../bep/template.js";
+import { BETS_DIR, ensureInitializedRepo } from "../fs/init.js";
+import { runNewWizard } from "../ui/newWizard.js";
+import { normalizeBetName, promptNewBetName } from "../ui/newBetName.js";
 
 async function pathExists(filePath: string): Promise<boolean> {
   try {

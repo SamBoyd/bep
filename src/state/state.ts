@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { STATE_PATH } from "../fs/init";
+import { STATE_PATH } from "../fs/init.js";
 
 export type ActiveSession = {
   id: string;

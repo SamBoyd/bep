@@ -1,7 +1,7 @@
 import path from "node:path";
-import { findNearestClaudeDir } from "./discovery";
-import { installClaudeCodeHooks } from "./claude";
-import { formatAgentLabel, isHookAgent, isSupportedHookAgent, type HookAgent } from "./types";
+import { findNearestClaudeDir } from "./discovery.js";
+import { installClaudeCodeHooks } from "./claude.js";
+import { formatAgentLabel, isHookAgent, isSupportedHookAgent, type HookAgent } from "./types.js";
 
 export type InstallHooksResult =
   | {

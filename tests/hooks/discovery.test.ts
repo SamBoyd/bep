@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { findNearestClaudeDir } from "../../src/hooks/discovery";
+import { findNearestClaudeDir } from "../../src/hooks/discovery.js";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-hook-discovery-test-"));

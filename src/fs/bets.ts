@@ -1,8 +1,8 @@
 import { access, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
-import type { BetFile, BetFrontmatter } from "../bep/file";
-import { BETS_DIR } from "./init";
+import type { BetFile, BetFrontmatter } from "../bep/file.js";
+import { BETS_DIR } from "./init.js";
 
 export type ReadBetFileResult = {
   relativePath: string;

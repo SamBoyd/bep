@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
 import { appendFile } from "node:fs/promises";
 import os from "node:os";
-import { isValidBetId } from "../bep/id";
-import type { SelectionContext, SelectionDecision, SelectionResult } from "./types";
+import { isValidBetId } from "../bep/id.js";
+import type { SelectionContext, SelectionDecision, SelectionResult } from "./types.js";
 
 const DEBUG = true;
 const SELECTION_TIMEOUT_MS = 60000;

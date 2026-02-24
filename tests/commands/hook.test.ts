@@ -1,9 +1,9 @@
 import { access, appendFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { runHook } from "../../src/commands/hook";
-import { BETS_DIR, LOGS_DIR, initRepo } from "../../src/fs/init";
-import type { SelectionContext, SelectionResult } from "../../src/tracking/types";
+import { runHook } from "../../src/commands/hook.js";
+import { BETS_DIR, LOGS_DIR, initRepo } from "../../src/fs/init.js";
+import type { SelectionContext, SelectionResult } from "../../src/tracking/types.js";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-hook-command-test-"));

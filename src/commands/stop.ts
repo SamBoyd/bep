@@ -1,9 +1,9 @@
 import { appendFile } from "node:fs/promises";
 import path from "node:path";
-import { isValidBetId } from "../bep/id";
-import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile } from "../fs/bets";
-import { LOGS_DIR, ensureInitializedRepo } from "../fs/init";
-import { readState, removeActiveSessions, writeState } from "../state/state";
+import { isValidBetId } from "../bep/id.js";
+import { getBetAbsolutePath, getBetRelativePath, pathExists, readBetFile } from "../fs/bets.js";
+import { LOGS_DIR, ensureInitializedRepo } from "../fs/init.js";
+import { readState, removeActiveSessions, writeState } from "../state/state.js";
 
 type StopLogEntry = {
   id: string;

@@ -1,8 +1,8 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { runStart } from "../../src/commands/start";
-import { BETS_DIR, STATE_PATH, initRepo } from "../../src/fs/init";
+import { runStart } from "../../src/commands/start.js";
+import { BETS_DIR, STATE_PATH, initRepo } from "../../src/fs/init.js";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-start-command-test-"));

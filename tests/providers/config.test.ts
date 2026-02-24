@@ -5,7 +5,7 @@ import {
   PROVIDER_CONFIG_PATH,
   getMixpanelServiceAccountCreds,
   readProviderConfig,
-} from "../../src/providers/config";
+} from "../../src/providers/config.js";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-provider-config-test-"));

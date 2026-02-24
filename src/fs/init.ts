@@ -1,6 +1,6 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { PROVIDER_CONFIG_PATH } from "../providers/config";
+import { PROVIDER_CONFIG_PATH } from "../providers/config.js";
 
 export const BETS_DIR = "bets";
 export const LOGS_DIR = path.join(BETS_DIR, "_logs");

@@ -48,7 +48,7 @@ Maintain this section as the source of truth for the repo's major technologies.
 - CLI framework: `commander`
 - Build tooling: `tsup`
 - Test framework: `jest` (`ts-jest`)
-- Current package format: CommonJS (`"type": "commonjs"`)
+- Current package format: ESM (`"type": "module"`)
 
 # Technology list maintenance rules
 

@@ -1,8 +1,8 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { getBetRelativePath, readBetFile, writeBetFile } from "../../src/fs/bets";
-import { BETS_DIR, initRepo } from "../../src/fs/init";
+import { getBetRelativePath, readBetFile, writeBetFile } from "../../src/fs/bets.js";
+import { BETS_DIR, initRepo } from "../../src/fs/init.js";
 
 async function createTempDir(): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), "bep-fs-bets-test-"));

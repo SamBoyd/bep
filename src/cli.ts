@@ -1,11 +1,13 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { Command } from "commander";
-import { runInit } from "./commands/init";
-import { runCheck } from "./commands/check";
-import { runNew } from "./commands/new";
-import { runStart } from "./commands/start";
-import { runStop } from "./commands/stop";
-import { runStatus } from "./commands/status";
-import { runHook } from "./commands/hook";
+import { runInit } from "./commands/init.js";
+import { runCheck } from "./commands/check.js";
+import { runNew } from "./commands/new.js";
+import { runStart } from "./commands/start.js";
+import { runStop } from "./commands/stop.js";
+import { runStatus } from "./commands/status.js";
+import { runHook } from "./commands/hook.js";
 
 export async function main(argv: string[]): Promise<void> {
   const program = new Command();
@@ -79,6 +81,16 @@ export async function main(argv: string[]): Promise<void> {
   await program.parseAsync(argv);
 }
 
-if (require.main === module) {
+function isEntrypoint(): boolean {
+  const argvPath = process.argv[1];
+  if (!argvPath) {
+    return false;
+  }
+
+  const modulePath = fileURLToPath(import.meta.url);
+  return path.resolve(argvPath) === path.resolve(modulePath);
+}
+
+if (isEntrypoint()) {
   void main(process.argv);
 }

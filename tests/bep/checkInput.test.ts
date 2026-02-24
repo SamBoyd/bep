@@ -1,4 +1,4 @@
-import { evaluateManualComparison, parseManualLeadingIndicator } from "../../src/bep/checkInput";
+import { evaluateManualComparison, parseManualLeadingIndicator } from "../../src/bep/checkInput.js";
 
 describe("parseManualLeadingIndicator", () => {
   test("parses a valid manual indicator", () => {

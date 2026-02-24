@@ -1,6 +1,17 @@
-import * as configModule from "../../src/providers/config";
-import { getMixpanelServiceAccountCreds } from "../../src/providers/config";
-import { mixpanelAdapter, mixpanelSetup, parseMixpanelLeadingIndicator } from "../../src/providers/mixpanel";
+const { getMixpanelServiceAccountCreds: actualGetMixpanelServiceAccountCreds } = await import(
+  "../../src/providers/config.ts"
+);
+
+await jest.unstable_mockModule("../../src/providers/config.js", async () => {
+  return {
+    getMixpanelServiceAccountCreds: actualGetMixpanelServiceAccountCreds,
+    readProviderConfig: jest.fn(),
+  };
+});
+
+const configModule = await import("../../src/providers/config.js");
+const { mixpanelAdapter, mixpanelSetup, parseMixpanelLeadingIndicator } = await import("../../src/providers/mixpanel.js");
+const mockedReadProviderConfig = configModule.readProviderConfig as jest.MockedFunction<typeof configModule.readProviderConfig>;
 
 describe("mixpanel provider parse", () => {
   test("parses valid mixpanel indicator", () => {
@@ -74,7 +85,7 @@ describe("mixpanel provider parse", () => {
 
 describe("mixpanel provider config helpers", () => {
   test("rejects missing service account creds", () => {
-    const result = getMixpanelServiceAccountCreds({ mixpanel: {} });
+    const result = actualGetMixpanelServiceAccountCreds({ mixpanel: {} });
     expect(result).toEqual({
       ok: false,
       error: 'Missing non-empty "mixpanel.service_account_creds" in .bep.providers.json.',
@@ -82,7 +93,7 @@ describe("mixpanel provider config helpers", () => {
   });
 
   test("rejects invalid service account creds format", () => {
-    const result = getMixpanelServiceAccountCreds({
+    const result = actualGetMixpanelServiceAccountCreds({
       mixpanel: {
         service_account_creds: "invalid-format",
       },
@@ -96,7 +107,7 @@ describe("mixpanel provider config helpers", () => {
   });
 
   test("accepts valid service account creds", () => {
-    const result = getMixpanelServiceAccountCreds({
+    const result = actualGetMixpanelServiceAccountCreds({
       mixpanel: {
         service_account_creds: "user:secret",
       },
@@ -115,7 +126,7 @@ describe("mixpanel adapter", () => {
   });
 
   test("runCheck returns normalized result shape", async () => {
-    jest.spyOn(configModule, "readProviderConfig").mockResolvedValue({
+    mockedReadProviderConfig.mockResolvedValue({
       ok: true,
       value: { mixpanel: { service_account_creds: "svc-user:svc-secret" } },
     });
@@ -162,7 +173,7 @@ describe("mixpanel adapter", () => {
   });
 
   test("runCheck parses single-value series response", async () => {
-    jest.spyOn(configModule, "readProviderConfig").mockResolvedValue({
+    mockedReadProviderConfig.mockResolvedValue({
       ok: true,
       value: { mixpanel: { service_account_creds: "svc-user:svc-secret" } },
     });
@@ -207,7 +218,7 @@ describe("mixpanel adapter", () => {
   });
 
   test("runCheck throws when series has no numeric values", async () => {
-    jest.spyOn(configModule, "readProviderConfig").mockResolvedValue({
+    mockedReadProviderConfig.mockResolvedValue({
       ok: true,
       value: { mixpanel: { service_account_creds: "svc-user:svc-secret" } },
     });
@@ -243,7 +254,7 @@ describe("mixpanel adapter", () => {
   });
 
   test("runCheck throws when series has multiple numeric values", async () => {
-    jest.spyOn(configModule, "readProviderConfig").mockResolvedValue({
+    mockedReadProviderConfig.mockResolvedValue({
       ok: true,
       value: { mixpanel: { service_account_creds: "svc-user:svc-secret" } },
     });

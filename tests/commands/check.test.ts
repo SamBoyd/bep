@@ -1,13 +1,13 @@
 import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { runCheck } from "../../src/commands/check";
-import { BETS_DIR, EVIDENCE_DIR, initRepo } from "../../src/fs/init";
-import { runCheckPrompt } from "../../src/ui/checkPrompt";
-
-jest.mock("../../src/ui/checkPrompt", () => ({
+await jest.unstable_mockModule("../../src/ui/checkPrompt.js", () => ({
   runCheckPrompt: jest.fn(),
 }));
+
+const { runCheck } = await import("../../src/commands/check.js");
+const { BETS_DIR, EVIDENCE_DIR, initRepo } = await import("../../src/fs/init.js");
+const { runCheckPrompt } = await import("../../src/ui/checkPrompt.js");
 
 const mockedRunCheckPrompt = runCheckPrompt as jest.MockedFunction<typeof runCheckPrompt>;
 

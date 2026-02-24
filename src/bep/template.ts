@@ -1,5 +1,5 @@
 import matter from "gray-matter";
-import type { LeadingIndicator } from "../providers/types";
+import type { LeadingIndicator } from "../providers/types.js";
 
 export type NewBetTemplateInput = {
   id: string;
