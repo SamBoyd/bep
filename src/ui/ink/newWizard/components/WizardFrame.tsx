@@ -14,7 +14,7 @@ export function WizardFrame({
   error?: string;
 }>) {
   return (
-    <Box flexDirection="column" paddingX={1}>
+    <Box flexDirection="column" paddingX={3} paddingY={2} borderStyle={'round'}>
       <Text bold>{title}</Text>
       {helpText ? <Text dimColor>{helpText}</Text> : null}
       <Box marginTop={1} flexDirection="column">
@@ -25,10 +25,10 @@ export function WizardFrame({
           <Text color="red">Error: {error}</Text>
         </Box>
       ) : null}
-      <Box marginTop={1} flexDirection="column">
+      {/* <Box marginTop={1} flexDirection="column">
         <Text dimColor>Enter: submit | Esc/Ctrl+C: cancel</Text>
         {allowBack ? <Text dimColor>Type &quot;b&quot; then Enter to go back (text prompts) or choose Back</Text> : null}
-      </Box>
+      </Box> */}
     </Box>
   );
 }
