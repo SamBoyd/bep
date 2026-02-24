@@ -1,19 +1,11 @@
-import { access, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { isValidBetId } from "../bep/id.js";
 import { renderNewBetMarkdown } from "../bep/template.js";
 import { BETS_DIR, ensureInitializedRepo } from "../fs/init.js";
 import { runNewWizard } from "../ui/newWizard.js";
-import { normalizeBetName, promptNewBetName } from "../ui/newBetName.js";
-
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { normalizeBetName } from "../ui/newBetName.js";
 
 function isInteractiveTty(): boolean {
   return process.stdin.isTTY === true && process.stdout.isTTY === true;
@@ -24,24 +16,9 @@ function invalidIdError(id: string): string {
 }
 
 export async function runNew(rawId?: string): Promise<number> {
-  let id = rawId ? normalizeBetName(rawId) : undefined;
-  if (!id) {
-    if (!isInteractiveTty()) {
-      console.error("Missing bet name. Run 'bep new <name>' or use an interactive terminal.");
-      return 1;
-    }
-
-    const nameResult = await promptNewBetName();
-    if (nameResult.cancelled) {
-      console.error("Cancelled. No files were created.");
-      return 1;
-    }
-
-    id = normalizeBetName(nameResult.value);
-  }
-
-  if (!isValidBetId(id)) {
-    console.error(invalidIdError(id));
+  const initialBetName = rawId ? normalizeBetName(rawId) : undefined;
+  if (!initialBetName && !isInteractiveTty()) {
+    console.error("Missing bet name. Run 'bep new <name>' or use an interactive terminal.");
     return 1;
   }
 
@@ -54,20 +31,32 @@ export async function runNew(rawId?: string): Promise<number> {
     return 1;
   }
 
-  const relativePath = path.join(BETS_DIR, `${id}.md`);
-  const absolutePath = path.join(rootDir, relativePath);
+  const validateBetName = (normalizedName: string): string | undefined => {
+    if (!isValidBetId(normalizedName)) {
+      return invalidIdError(normalizedName);
+    }
 
-  if (await pathExists(absolutePath)) {
-    console.error(`Bet '${id}' already exists at ${relativePath}. Choose a unique id.`);
-    return 1;
-  }
+    const relativePath = path.join(BETS_DIR, `${normalizedName}.md`);
+    const absolutePath = path.join(rootDir, relativePath);
+    if (existsSync(absolutePath)) {
+      return `Bet '${normalizedName}' already exists at ${relativePath}. Choose a unique id.`;
+    }
 
-  const wizardResult = await runNewWizard();
+    return undefined;
+  };
+
+  const wizardResult = await runNewWizard({
+    initialBetName,
+    validateBetName,
+  });
   if (wizardResult.cancelled) {
     console.error("Cancelled. No files were created.");
     return 1;
   }
 
+  const id = wizardResult.values.betName;
+  const relativePath = path.join(BETS_DIR, `${id}.md`);
+  const absolutePath = path.join(rootDir, relativePath);
   const markdown = renderNewBetMarkdown({
     id,
     createdAt: new Date().toISOString(),

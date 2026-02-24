@@ -1,8 +1,8 @@
 import { renderNewWizardInk } from "./ink/newWizard/renderNewWizardInk.js";
-import type { NewWizardResult, NewWizardValues, OptionalNumberField } from "./newWizardPromptTypes.js";
+import type { NewWizardOptions, NewWizardResult, NewWizardValues, OptionalNumberField } from "./newWizardPromptTypes.js";
 
-export type { NewWizardResult, NewWizardValues, OptionalNumberField } from "./newWizardPromptTypes.js";
+export type { NewWizardOptions, NewWizardResult, NewWizardValues, OptionalNumberField } from "./newWizardPromptTypes.js";
 
-export async function runNewWizard(): Promise<NewWizardResult> {
-  return renderNewWizardInk();
+export async function runNewWizard(options: NewWizardOptions): Promise<NewWizardResult> {
+  return renderNewWizardInk(options);
 }

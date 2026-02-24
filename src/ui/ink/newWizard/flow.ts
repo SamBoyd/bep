@@ -4,9 +4,11 @@ import type {
   ManualLeadingIndicator,
   MixpanelLeadingIndicator,
 } from "../../../providers/types.js";
+import { normalizeBetName } from "../../newBetName.js";
 import type { NewWizardValues, OptionalNumberField } from "../../newWizardPromptTypes.js";
 
 export type WizardStepId =
+  | "bet_name"
   | "cap_type"
   | "cap_value"
   | "leading_indicator_type"
@@ -23,6 +25,7 @@ export type WizardStepId =
   | "notes";
 
 export type WizardDraftValues = {
+  betName?: string;
   capType?: OptionalNumberField;
   capValue?: number;
   leadingIndicatorType?: LeadingIndicatorType;
@@ -44,7 +47,7 @@ export function createInitialWizardDraft(): WizardDraftValues {
 }
 
 export function getWizardSteps(providerType?: LeadingIndicatorType): WizardStepId[] {
-  const steps: WizardStepId[] = ["cap_type", "cap_value", "leading_indicator_type"];
+  const steps: WizardStepId[] = ["bet_name", "cap_type", "cap_value", "leading_indicator_type"];
 
   if (providerType === "manual") {
     steps.push("manual_operator", "manual_target");
@@ -105,6 +108,10 @@ export function applyTextStepValue(
   step: WizardStepId,
   rawValue: string,
 ): WizardDraftValues {
+  if (step === "bet_name") {
+    return { ...draft, betName: normalizeBetName(rawValue) };
+  }
+
   if (step === "cap_value") {
     return { ...draft, capValue: Number(rawValue.trim()) };
   }
@@ -188,7 +195,7 @@ export function buildLeadingIndicatorFromDraft(
 }
 
 export function finalizeWizardDraft(draft: WizardDraftValues): NewWizardValues | null {
-  if (!draft.capType || typeof draft.capValue !== "number") {
+  if (!draft.betName || !draft.capType || typeof draft.capValue !== "number") {
     return null;
   }
 
@@ -202,6 +209,7 @@ export function finalizeWizardDraft(draft: WizardDraftValues): NewWizardValues |
   }
 
   return {
+    betName: draft.betName,
     maxHours: draft.capType === "max_hours" ? draft.capValue : undefined,
     maxCalendarDays: draft.capType === "max_calendar_days" ? draft.capValue : undefined,
     leadingIndicator,

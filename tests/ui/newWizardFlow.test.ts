@@ -7,6 +7,10 @@ import {
 } from "../../src/ui/ink/newWizard/flow.js";
 
 describe("new wizard flow helpers", () => {
+  test("includes bet name as the first wizard step", () => {
+    expect(getWizardSteps()[0]).toBe("bet_name");
+  });
+
   test("inserts manual provider steps when manual is selected", () => {
     expect(getWizardSteps("manual")).toContain("manual_operator");
     expect(getWizardSteps("manual")).toContain("manual_target");
@@ -34,6 +38,11 @@ describe("new wizard flow helpers", () => {
     expect(withCap.capValue).toBeUndefined();
   });
 
+  test("normalizes bet name text input", () => {
+    const draft = applyTextStepValue(createInitialWizardDraft(), "bet_name", " Landing Page Refresh ");
+    expect(draft.betName).toBe("landing_page_refresh");
+  });
+
   test("changing provider type clears incompatible provider fields", () => {
     let draft = createInitialWizardDraft();
     draft = applySelectStepValue(draft, "leading_indicator_type", "manual");
@@ -48,6 +57,7 @@ describe("new wizard flow helpers", () => {
 
   test("finalizes manual flow values", () => {
     let draft = createInitialWizardDraft();
+    draft = applyTextStepValue(draft, "bet_name", "Manual Bet");
     draft = applySelectStepValue(draft, "cap_type", "max_hours");
     draft = applyTextStepValue(draft, "cap_value", "8");
     draft = applySelectStepValue(draft, "leading_indicator_type", "manual");
@@ -59,6 +69,7 @@ describe("new wizard flow helpers", () => {
     draft = applyTextStepValue(draft, "notes", "");
 
     expect(finalizeWizardDraft(draft)).toEqual({
+      betName: "manual_bet",
       maxHours: 8,
       maxCalendarDays: undefined,
       leadingIndicator: {
@@ -75,6 +86,7 @@ describe("new wizard flow helpers", () => {
 
   test("finalizes mixpanel flow values", () => {
     let draft = createInitialWizardDraft();
+    draft = applyTextStepValue(draft, "bet_name", "Mixpanel Bet");
     draft = applySelectStepValue(draft, "cap_type", "max_calendar_days");
     draft = applyTextStepValue(draft, "cap_value", "14");
     draft = applySelectStepValue(draft, "leading_indicator_type", "mixpanel");
@@ -89,6 +101,7 @@ describe("new wizard flow helpers", () => {
     draft = applyTextStepValue(draft, "notes", "");
 
     expect(finalizeWizardDraft(draft)).toEqual({
+      betName: "mixpanel_bet",
       maxHours: undefined,
       maxCalendarDays: 14,
       leadingIndicator: {

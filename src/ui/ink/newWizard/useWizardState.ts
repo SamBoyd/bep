@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { listRegisteredProviderTypes } from "../../../providers/registry.js";
 import type { LeadingIndicatorType } from "../../../providers/types.js";
+import { normalizeBetName } from "../../newBetName.js";
+import type { NewWizardOptions, NewWizardResult } from "../../newWizardPromptTypes.js";
 import {
   applySelectStepValue,
   applyTextStepValue,
@@ -12,7 +14,6 @@ import {
 } from "./flow.js";
 import { classifyTextSubmission, getInitialSelectIndex } from "./promptUtils.js";
 import type { SelectPromptRequest, TextPromptRequest } from "./types.js";
-import type { NewWizardResult } from "../../newWizardPromptTypes.js";
 
 const BACK_OPTION = "__back__";
 const MIXPANEL_URL_HINT =
@@ -38,7 +39,12 @@ function isProviderType(value: string): value is LeadingIndicatorType {
   return value === "manual" || value === "mixpanel";
 }
 
-function buildPrompt(step: WizardStepId, draft: WizardDraftValues, allowBack: boolean): WizardPrompt {
+function buildPrompt(
+  step: WizardStepId,
+  draft: WizardDraftValues,
+  allowBack: boolean,
+  options: NewWizardOptions,
+): WizardPrompt {
   const withBack = <T extends string>(options: Array<{ label: string; value: T }>) => {
     const base = options.map((option) => ({ ...option }));
     if (allowBack) {
@@ -64,6 +70,22 @@ function buildPrompt(step: WizardStepId, draft: WizardDraftValues, allowBack: bo
       return undefined;
     },
   });
+
+  if (step === "bet_name") {
+    return {
+      title: "Bet name (required).",
+      initialValue: draft.betName ?? options.initialBetName,
+      allowBack,
+      validate(rawValue) {
+        const normalizedName = normalizeBetName(rawValue);
+        if (normalizedName.length === 0) {
+          return "Enter a bet name.";
+        }
+
+        return options.validateBetName(normalizedName);
+      },
+    };
+  }
 
   if (step === "cap_type") {
     return {
@@ -230,7 +252,10 @@ function buildUiState(prompt: WizardPrompt): WizardUiState {
   };
 }
 
-export function useWizardState(onComplete: (result: NewWizardResult) => void): {
+export function useWizardState(
+  onComplete: (result: NewWizardResult) => void,
+  options: NewWizardOptions,
+): {
   prompt: WizardPrompt;
   uiState: WizardUiState;
   actions: WizardStateActions;
@@ -243,7 +268,7 @@ export function useWizardState(onComplete: (result: NewWizardResult) => void): {
   const safeStepIndex = Math.min(stepIndex, Math.max(0, steps.length - 1));
   const step = steps[safeStepIndex] ?? steps[0];
   const allowBack = safeStepIndex > 0;
-  const prompt = useMemo(() => buildPrompt(step, draft, allowBack), [step, draft, allowBack]);
+  const prompt = useMemo(() => buildPrompt(step, draft, allowBack, options), [step, draft, allowBack, options]);
 
   useEffect(() => {
     if (safeStepIndex !== stepIndex) {

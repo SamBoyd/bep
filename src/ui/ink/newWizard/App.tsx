@@ -3,10 +3,16 @@ import { SelectStep } from "./components/SelectStep.js";
 import { TextStep } from "./components/TextStep.js";
 import { useWizardInput } from "./useWizardInput.js";
 import { useWizardState } from "./useWizardState.js";
-import type { NewWizardResult } from "../../newWizardPromptTypes.js";
+import type { NewWizardOptions, NewWizardResult } from "../../newWizardPromptTypes.js";
 
-export function InkNewWizardApp({ onComplete }: { onComplete: (result: NewWizardResult) => void }) {
-  const { prompt, uiState, actions } = useWizardState(onComplete);
+export function InkNewWizardApp({
+  onComplete,
+  options,
+}: {
+  onComplete: (result: NewWizardResult) => void;
+  options: NewWizardOptions;
+}) {
+  const { prompt, uiState, actions } = useWizardState(onComplete, options);
   useWizardInput(prompt, uiState, actions);
 
   return (
