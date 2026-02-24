@@ -4,7 +4,7 @@ module.exports = {
   testEnvironment: "node",
   testMatch: ["**/tests/**/*.test.ts"],
   setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"],
-  extensionsToTreatAsEsm: [".ts"],
+  extensionsToTreatAsEsm: [".ts", ".tsx"],
   moduleNameMapper: {
     "^\\.\\.\\/\\.\\.\\/src\\/ui\\/checkPrompt\\.js$": "<rootDir>/src/ui/checkPrompt.ts",
     "^\\.\\.\\/\\.\\.\\/src\\/ui\\/newWizard\\.js$": "<rootDir>/src/ui/newWizard.ts",
@@ -14,13 +14,14 @@ module.exports = {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
   transform: {
-    "^.+\\.ts$": [
+    "^.+\\.tsx?$": [
       "ts-jest",
       {
         useESM: true,
         tsconfig: {
           module: "NodeNext",
           moduleResolution: "NodeNext",
+          jsx: "react-jsx",
           isolatedModules: true,
         },
       },

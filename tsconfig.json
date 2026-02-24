@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": false,
     "forceConsistentCasingInFileNames": true,
@@ -12,7 +13,7 @@
     "noEmit": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": ["src", "tests"]
 }

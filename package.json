@@ -4,7 +4,9 @@
   "description": "BEP: Budgeted Engineering Proposals (repo-native pre-commitment CLI)",
   "license": "MIT",
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -31,6 +33,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.5",
+    "@types/react": "^19.2.13",
     "execa": "^9.5.2",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",

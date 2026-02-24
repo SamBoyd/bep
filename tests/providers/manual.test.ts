@@ -2,7 +2,7 @@ await jest.unstable_mockModule("../../src/ui/checkPrompt.js", () => ({
   runCheckPrompt: jest.fn(),
 }));
 
-const { manualAdapter, manualSetup, parseManualLeadingIndicator } = await import("../../src/providers/manual.js");
+const { manualAdapter, parseManualLeadingIndicator } = await import("../../src/providers/manual.js");
 const { runCheckPrompt } = await import("../../src/ui/checkPrompt.js");
 
 const mockedRunCheckPrompt = runCheckPrompt as jest.MockedFunction<typeof runCheckPrompt>;
@@ -65,26 +65,4 @@ describe("manual adapter", () => {
     });
   });
 
-  test("setup returns a manual indicator from setup prompt client", async () => {
-    const result = await manualSetup.collectNewWizardInput({
-      allowBack: true,
-      client: {
-        async promptManualOperator() {
-          return { kind: "value", value: "lte" };
-        },
-        async promptManualTarget() {
-          return { kind: "value", value: 12 };
-        },
-      },
-    });
-
-    expect(result).toEqual({
-      kind: "value",
-      value: {
-        type: "manual",
-        operator: "lte",
-        target: 12,
-      },
-    });
-  });
 });

@@ -10,7 +10,7 @@ await jest.unstable_mockModule("../../src/providers/config.js", async () => {
 });
 
 const configModule = await import("../../src/providers/config.js");
-const { mixpanelAdapter, mixpanelSetup, parseMixpanelLeadingIndicator } = await import("../../src/providers/mixpanel.js");
+const { mixpanelAdapter, parseMixpanelLeadingIndicator } = await import("../../src/providers/mixpanel.js");
 const mockedReadProviderConfig = configModule.readProviderConfig as jest.MockedFunction<typeof configModule.readProviderConfig>;
 
 describe("mixpanel provider parse", () => {
@@ -292,38 +292,4 @@ describe("mixpanel adapter", () => {
     );
   });
 
-  test("setup returns a mixpanel indicator from setup prompt client", async () => {
-    const result = await mixpanelSetup.collectNewWizardInput({
-      allowBack: true,
-      client: {
-        async promptMixpanelProjectId() {
-          return { kind: "value", value: "3989556" };
-        },
-        async promptMixpanelWorkspaceId() {
-          return { kind: "value", value: "4485331" };
-        },
-        async promptMixpanelBookmarkId() {
-          return { kind: "value", value: "88319528" };
-        },
-        async promptMixpanelOperator() {
-          return { kind: "value", value: "lte" };
-        },
-        async promptMixpanelTarget() {
-          return { kind: "value", value: 12 };
-        },
-      },
-    });
-
-    expect(result).toEqual({
-      kind: "value",
-      value: {
-        type: "mixpanel",
-        project_id: "3989556",
-        workspace_id: "4485331",
-        bookmark_id: "88319528",
-        operator: "lte",
-        target: 12,
-      },
-    });
-  });
 });

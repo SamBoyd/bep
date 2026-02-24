@@ -57,6 +57,7 @@ Maintain this section as the source of truth for the repo's major technologies.
 
 - Runtime/language: Node.js + TypeScript
 - CLI framework: `commander`
+- TUI renderer (new bet wizard): `ink` + `react` (experimental)
 - Build tooling: `tsup`
 - Test framework: `jest` (`ts-jest`)
 - Current package format: ESM (`"type": "module"`)
@@ -89,7 +90,8 @@ Update this map whenever directories, entrypoints, or core config locations chan
 │   ├── fs/                # Filesystem/domain helpers (repo layout/state setup)
 │   ├── state/             # State read/write/validation helpers
 │   ├── tracking/          # Hook payload parsing, bet-selection context, and attribution logic
-│   └── ui/                # Interactive prompt flows/wizard helpers
+│   └── ui/                # Interactive prompt flows/wizard helpers (Clack + Ink)
+│       └── ink/           # Ink-based interactive UI components/controllers (new wizard)
 └── tests/                 # Jest test suites for units/commands
     ├── commands/          # Command-level behavior tests
     ├── fs/                # Filesystem helper tests
