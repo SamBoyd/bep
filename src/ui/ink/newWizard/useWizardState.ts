@@ -259,7 +259,8 @@ export function useWizardState(
   }, [step]);
 
   const completeIfDone = (nextDraft: WizardDraftValues, nextStepIndex: number) => {
-    if (nextStepIndex < steps.length) {
+    const nextSteps = getWizardSteps(nextDraft.leadingIndicatorType);
+    if (nextStepIndex < nextSteps.length) {
       return false;
     }
 
@@ -279,12 +280,9 @@ export function useWizardState(
       return;
     }
 
-    let nextDraft!: WizardDraftValues;
     const nextStep = safeStepIndex + 1;
-    setDraft((previous) => {
-      nextDraft = applySelectStepValue(previous, step, selectedValue);
-      return nextDraft;
-    });
+    const nextDraft = applySelectStepValue(draft, step, selectedValue);
+    setDraft(nextDraft);
 
     if (!completeIfDone(nextDraft, nextStep)) {
       setStepIndex(nextStep);
@@ -310,12 +308,9 @@ export function useWizardState(
       return;
     }
 
-    let nextDraft!: WizardDraftValues;
     const nextStep = safeStepIndex + 1;
-    setDraft((previous) => {
-      nextDraft = applyTextStepValue(previous, step, submission.value);
-      return nextDraft;
-    });
+    const nextDraft = applyTextStepValue(draft, step, submission.value);
+    setDraft(nextDraft);
 
     if (!completeIfDone(nextDraft, nextStep)) {
       setStepIndex(nextStep);
