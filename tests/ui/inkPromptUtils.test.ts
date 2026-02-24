@@ -13,17 +13,8 @@ describe("ink new wizard prompt utils", () => {
     expect(index).toBe(1);
   });
 
-  test("returns back for text submission sentinel", () => {
-    const result = classifyTextSubmission(" b ", {
-      allowBack: true,
-    });
-
-    expect(result).toEqual({ kind: "back" });
-  });
-
   test("returns validation error for invalid submission", () => {
     const result = classifyTextSubmission("", {
-      allowBack: false,
       validate: () => "Enter a value.",
     });
 
@@ -32,7 +23,6 @@ describe("ink new wizard prompt utils", () => {
 
   test("returns raw value when valid", () => {
     const result = classifyTextSubmission("  keep raw  ", {
-      allowBack: false,
       validate: () => undefined,
     });
 

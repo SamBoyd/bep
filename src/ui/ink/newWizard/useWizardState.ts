@@ -42,17 +42,8 @@ function isProviderType(value: string): value is LeadingIndicatorType {
 function buildPrompt(
   step: WizardStepId,
   draft: WizardDraftValues,
-  allowBack: boolean,
   options: NewWizardOptions,
 ): WizardPrompt {
-  const withBack = <T extends string>(options: Array<{ label: string; value: T }>) => {
-    const base = options.map((option) => ({ ...option }));
-    if (allowBack) {
-      base.unshift({ label: "Back", value: BACK_OPTION });
-    }
-    return base;
-  };
-
   const requiredText = (
     title: string,
     initialValue: string | undefined,
@@ -61,7 +52,6 @@ function buildPrompt(
   ): TextPromptRequest => ({
     title,
     initialValue,
-    allowBack,
     helpText,
     validate(rawValue) {
       if (rawValue.trim().length === 0) {
@@ -75,7 +65,6 @@ function buildPrompt(
     return {
       title: "Bet name (required).",
       initialValue: draft.betName ?? options.initialBetName,
-      allowBack,
       validate(rawValue) {
         const normalizedName = normalizeBetName(rawValue);
         if (normalizedName.length === 0) {
@@ -90,12 +79,11 @@ function buildPrompt(
   if (step === "cap_type") {
     return {
       title: "Choose your exposure cap type",
-      allowBack,
       initialValue: draft.capType,
-      options: withBack([
+      options: [
         { label: "Cap by hours", value: "max_hours" },
         { label: "Cap by calendar days", value: "max_calendar_days" },
-      ]),
+      ],
     };
   }
 
@@ -103,7 +91,6 @@ function buildPrompt(
     return {
       title: `${draft.capType === "max_calendar_days" ? "Max calendar days" : "Max hours"} (required).`,
       initialValue: typeof draft.capValue === "number" ? String(draft.capValue) : undefined,
-      allowBack,
       validate(rawValue) {
         const trimmed = rawValue.trim();
         if (trimmed.length === 0) {
@@ -123,28 +110,24 @@ function buildPrompt(
   if (step === "leading_indicator_type") {
     return {
       title: "Leading indicator provider type",
-      allowBack,
       initialValue: draft.leadingIndicatorType,
-      options: withBack(
-        listRegisteredProviderTypes()
+      options: listRegisteredProviderTypes()
           .filter(isProviderType)
           .map((type) => ({ label: type, value: type })),
-      ),
     };
   }
 
   if (step === "manual_operator") {
     return {
       title: "Leading indicator comparison operator",
-      allowBack,
       initialValue: draft.manualOperator,
-      options: withBack([
+      options: [
         { label: "lt (less than)", value: "lt" },
         { label: "lte (less than or equal)", value: "lte" },
         { label: "eq (equal)", value: "eq" },
         { label: "gte (greater than or equal)", value: "gte" },
         { label: "gt (greater than)", value: "gt" },
-      ]),
+      ],
     };
   }
 
@@ -152,7 +135,6 @@ function buildPrompt(
     return {
       title: "Leading indicator numeric target (required).",
       initialValue: typeof draft.manualTarget === "number" ? String(draft.manualTarget) : undefined,
-      allowBack,
       validate(rawValue) {
         const trimmed = rawValue.trim();
         if (trimmed.length === 0 || !Number.isFinite(Number(trimmed))) {
@@ -188,15 +170,14 @@ function buildPrompt(
   if (step === "mixpanel_operator") {
     return {
       title: "Mixpanel comparison operator",
-      allowBack,
       initialValue: draft.mixpanelOperator,
-      options: withBack([
+      options: [
         { label: "lt (less than)", value: "lt" },
         { label: "lte (less than or equal)", value: "lte" },
         { label: "eq (equal)", value: "eq" },
         { label: "gte (greater than or equal)", value: "gte" },
         { label: "gt (greater than)", value: "gt" },
-      ]),
+      ],
     };
   }
 
@@ -204,7 +185,6 @@ function buildPrompt(
     return {
       title: "Mixpanel target value (required).",
       initialValue: typeof draft.mixpanelTarget === "number" ? String(draft.mixpanelTarget) : undefined,
-      allowBack,
       validate(rawValue) {
         const trimmed = rawValue.trim();
         if (trimmed.length === 0 || !Number.isFinite(Number(trimmed))) {
@@ -230,7 +210,6 @@ function buildPrompt(
   return {
     title: "Notes (optional).",
     initialValue: draft.notes,
-    allowBack,
     optional: true,
     validate: () => undefined,
   };
@@ -267,8 +246,7 @@ export function useWizardState(
   const steps = useMemo(() => getWizardSteps(draft.leadingIndicatorType), [draft.leadingIndicatorType]);
   const safeStepIndex = Math.min(stepIndex, Math.max(0, steps.length - 1));
   const step = steps[safeStepIndex] ?? steps[0];
-  const allowBack = safeStepIndex > 0;
-  const prompt = useMemo(() => buildPrompt(step, draft, allowBack, options), [step, draft, allowBack, options]);
+  const prompt = useMemo(() => buildPrompt(step, draft, options), [step, draft, options]);
 
   useEffect(() => {
     if (safeStepIndex !== stepIndex) {
@@ -319,7 +297,6 @@ export function useWizardState(
     }
 
     const submission = classifyTextSubmission(uiState.textValue, {
-      allowBack,
       validate: prompt.validate,
     });
 

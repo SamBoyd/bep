@@ -8,14 +8,12 @@ export type SelectPromptRequest = {
   options: SelectPromptOption[];
   initialValue?: string;
   helpText?: string;
-  allowBack: boolean;
 };
 
 export type TextPromptRequest = {
   title: string;
   initialValue?: string;
   helpText?: string;
-  allowBack: boolean;
   optional?: boolean;
   validate?: (rawValue: string) => string | undefined;
 };

@@ -18,7 +18,7 @@ describe("cli", () => {
 
     await main(["node", "/dist/cli.js", "new", "landing", "page"]);
 
-    expect(mockedRunNew).toHaveBeenCalledWith("new landing page");
+    expect(mockedRunNew).toHaveBeenCalledWith("landing page");
     expect(process.exitCode).toBe(0);
   });
 });

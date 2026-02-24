@@ -16,7 +16,7 @@ export function InkNewWizardApp({
   useWizardInput(prompt, uiState, actions);
 
   return (
-    <WizardFrame title={prompt.title} helpText={prompt.helpText} allowBack={prompt.allowBack} error={uiState.error}>
+    <WizardFrame title={prompt.title} helpText={prompt.helpText} error={uiState.error}>
       {"options" in prompt ? (
         <SelectStep prompt={prompt} selectedIndex={uiState.selectIndex} />
       ) : (
