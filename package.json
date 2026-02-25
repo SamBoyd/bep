@@ -1,6 +1,6 @@
 {
   "name": "@samboyd/bep-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "BEP: Budgeted Engineering Proposals (repo-native pre-commitment CLI)",
   "license": "MIT",
   "type": "module",
