@@ -208,18 +208,6 @@ function buildProviderConfig(effective: EffectivePreviewState): {
           label: "bookmark id",
           ...valueField(effective.mixpanelBookmarkId),
         },
-        {
-          label: "operator",
-          value: effective.mixpanelOperator
-            ? formatManualComparisonOperator(effective.mixpanelOperator)
-            : EMPTY_VALUE,
-          empty: !effective.mixpanelOperator,
-        },
-        {
-          label: "target",
-          value: inlineValue(effective.mixpanelTargetText),
-          empty: !effective.mixpanelTargetText,
-        },
       ],
     };
   }

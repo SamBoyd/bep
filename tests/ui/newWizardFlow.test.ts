@@ -11,10 +11,10 @@ describe("new wizard flow helpers", () => {
     expect(getWizardSteps()).toEqual([
       "bet_name",
       "primary_assumption",
+      "validation_plan",
       "leading_indicator_type",
       "cap_type",
       "cap_value",
-      "validation_plan",
       "notes",
     ]);
   });
@@ -23,12 +23,12 @@ describe("new wizard flow helpers", () => {
     expect(getWizardSteps("manual")).toEqual([
       "bet_name",
       "primary_assumption",
+      "validation_plan",
       "leading_indicator_type",
       "manual_operator",
       "manual_target",
       "cap_type",
       "cap_value",
-      "validation_plan",
       "notes",
     ]);
   });
@@ -37,15 +37,15 @@ describe("new wizard flow helpers", () => {
     expect(getWizardSteps("mixpanel")).toEqual([
       "bet_name",
       "primary_assumption",
+      "validation_plan",
       "leading_indicator_type",
-      "mixpanel_project_id",
       "mixpanel_workspace_id",
+      "mixpanel_project_id",
       "mixpanel_bookmark_id",
       "mixpanel_operator",
       "mixpanel_target",
       "cap_type",
       "cap_value",
-      "validation_plan",
       "notes",
     ]);
   });

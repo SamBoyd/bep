@@ -45,15 +45,15 @@ export function createInitialWizardDraft(): WizardDraftValues {
 }
 
 export function getWizardSteps(providerType?: LeadingIndicatorType): WizardStepId[] {
-  const steps: WizardStepId[] = ["bet_name", "primary_assumption", "leading_indicator_type"];
+  const steps: WizardStepId[] = ["bet_name", "primary_assumption", "validation_plan", "leading_indicator_type"];
 
   if (providerType === "manual") {
     steps.push("manual_operator", "manual_target");
   } else if (providerType === "mixpanel") {
-    steps.push("mixpanel_project_id", "mixpanel_workspace_id", "mixpanel_bookmark_id", "mixpanel_operator", "mixpanel_target");
+    steps.push("mixpanel_workspace_id", "mixpanel_project_id", "mixpanel_bookmark_id", "mixpanel_operator", "mixpanel_target");
   }
 
-  steps.push("cap_type", "cap_value", "validation_plan", "notes");
+  steps.push("cap_type", "cap_value", "notes");
   return steps;
 }
 

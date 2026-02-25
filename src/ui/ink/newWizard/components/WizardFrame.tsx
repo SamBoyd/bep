@@ -12,7 +12,7 @@ export function WizardFrame({
   error?: string;
 }>) {
   return (
-    <Box flexDirection="column" paddingX={3} paddingY={2} borderStyle={'round'}>
+    <Box flexDirection="column" paddingX={2} paddingY={0}>
       <Text bold>{title}</Text>
       {helpText ? <Text dimColor>{helpText}</Text> : null}
       <Box marginTop={1} flexDirection="column">
