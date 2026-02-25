@@ -62,6 +62,14 @@ Practical rules:
 - Use requirement IDs (`R1`, `R2`, ...) so implementation and verification can reference them.
 - Prefer observable behavior and invariants; avoid file/function names unless they are part of the external contract.
 
+## KEY DECISIONS FORMAT
+
+For non-trivial changes, include a `Key Decisions` section that captures the highest-leverage technical choices before implementation steps.
+
+- Use decision IDs (`D1`, `D2`, ...) so requirements, implementation, and verification can reference them when needed.
+- Prefer compact entries that state the decision, main alternatives considered, chosen option, and why it was chosen.
+- Focus on consequential tradeoffs (architecture boundaries, data ownership, interfaces, persistence, rollout, failure handling), not routine edits.
+
 ## IMPLEMENTATION PLAN FORMAT
 
 Describe *how* you'll satisfy the requirements as concrete steps (agent actions), chunked into small git-committable units when appropriate.
@@ -78,6 +86,8 @@ Include explicit checks that map back to the requirements.
 
 Template (shape only):
 
+- Key Decisions:
+- `D1: <decision>. Alternatives: <A>/<B>. Chosen: <option> because <reason>.`
 - Requirements:
 - `R1: When <trigger>, the <system> shall <response>.`
 - `R2: While <state>, the <system> shall <response>.`
