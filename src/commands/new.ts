@@ -64,7 +64,6 @@ export async function runNew(rawId?: string): Promise<number> {
     maxHours: wizardResult.values.maxHours,
     maxCalendarDays: wizardResult.values.maxCalendarDays,
     primaryAssumption: wizardResult.values.primaryAssumption,
-    rationale: wizardResult.values.rationale,
     validationPlan: wizardResult.values.validationPlan,
     notes: wizardResult.values.notes,
   });

@@ -11,7 +11,6 @@ describe("new wizard flow helpers", () => {
     expect(getWizardSteps()).toEqual([
       "bet_name",
       "primary_assumption",
-      "rationale",
       "leading_indicator_type",
       "cap_type",
       "cap_value",
@@ -24,7 +23,6 @@ describe("new wizard flow helpers", () => {
     expect(getWizardSteps("manual")).toEqual([
       "bet_name",
       "primary_assumption",
-      "rationale",
       "leading_indicator_type",
       "manual_operator",
       "manual_target",
@@ -39,7 +37,6 @@ describe("new wizard flow helpers", () => {
     expect(getWizardSteps("mixpanel")).toEqual([
       "bet_name",
       "primary_assumption",
-      "rationale",
       "leading_indicator_type",
       "mixpanel_project_id",
       "mixpanel_workspace_id",
@@ -94,7 +91,6 @@ describe("new wizard flow helpers", () => {
     draft = applySelectStepValue(draft, "manual_operator", "gte");
     draft = applyTextStepValue(draft, "manual_target", "100");
     draft = applyTextStepValue(draft, "primary_assumption", "Assumption");
-    draft = applyTextStepValue(draft, "rationale", "Rationale");
     draft = applyTextStepValue(draft, "validation_plan", "Plan");
     draft = applyTextStepValue(draft, "notes", "");
 
@@ -108,7 +104,6 @@ describe("new wizard flow helpers", () => {
         target: 100,
       },
       primaryAssumption: "Assumption",
-      rationale: "Rationale",
       validationPlan: "Plan",
       notes: "",
     });
@@ -126,7 +121,6 @@ describe("new wizard flow helpers", () => {
     draft = applySelectStepValue(draft, "mixpanel_operator", "gte");
     draft = applyTextStepValue(draft, "mixpanel_target", "100");
     draft = applyTextStepValue(draft, "primary_assumption", "Assumption");
-    draft = applyTextStepValue(draft, "rationale", "Rationale");
     draft = applyTextStepValue(draft, "validation_plan", "Plan");
     draft = applyTextStepValue(draft, "notes", "");
 
@@ -143,7 +137,6 @@ describe("new wizard flow helpers", () => {
         target: 100,
       },
       primaryAssumption: "Assumption",
-      rationale: "Rationale",
       validationPlan: "Plan",
       notes: "",
     });

@@ -13,7 +13,7 @@ export function TextStep({
   return (
     <Box flexDirection="column">
       <Text>
-        <Texet color="cyan">&gt;</Text>{" "}
+        <Text color="cyan">&gt;</Text>{" "}
         {value}
         {showPlaceholder ? <Text dimColor>{prompt.placeholder}</Text> : null}
         <Text inverse> </Text>

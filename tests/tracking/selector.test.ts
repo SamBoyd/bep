@@ -84,6 +84,21 @@ describe("selectBetWithClaude", () => {
     expect(capturedPrompt).toContain("Required JSON schema:");
   });
 
+  test("prompt omits rationale from bet context payload", async () => {
+    let capturedPrompt = "";
+    const result = await selectBetWithClaude(baseContext, async ({ prompt }) => {
+      capturedPrompt = prompt;
+      return JSON.stringify({
+        action: "none",
+        confidence: 0.7,
+        reason: "no decision",
+      });
+    });
+
+    expect(result.ok).toBe(true);
+    expect(capturedPrompt).not.toContain("\"rationale\"");
+  });
+
   test("accepts direct JSON decision", async () => {
     const result = await selectBetWithClaude(baseContext, async () =>
       JSON.stringify({ action: "switch", bet_id: "onboarding-v2", stop_bet_id: "landing-page", confidence: 0.9, reason: "strong match" }),

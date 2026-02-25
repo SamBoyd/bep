@@ -28,6 +28,17 @@ function extractSection(content: string, heading: string): string | undefined {
   return summarizeContent(match[1]);
 }
 
+function extractSectionAny(content: string, headings: string[]): string | undefined {
+  for (const heading of headings) {
+    const value = extractSection(content, heading);
+    if (value) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
 async function readBetCatalog(rootDir: string): Promise<BetCatalogEntry[]> {
   const files = await listBetMarkdownFiles(rootDir);
 
@@ -43,9 +54,8 @@ async function readBetCatalog(rootDir: string): Promise<BetCatalogEntry[]> {
         id,
         status,
         assumption: extractSection(content, "1\\. Primary Assumption"),
-        rationale: extractSection(content, "2\\. Rationale"),
-        validationPlan: extractSection(content, "3\\. Validation Plan"),
-        notes: extractSection(content, "4\\. Notes"),
+        validationPlan: extractSectionAny(content, ["2\\. Validation Plan", "3\\. Validation Plan"]),
+        notes: extractSectionAny(content, ["3\\. Notes", "4\\. Notes"]),
         summary: summarizeContent(content),
       });
     } catch {

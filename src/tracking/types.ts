@@ -15,7 +15,6 @@ export type BetCatalogEntry = {
   id: string;
   status: string;
   assumption?: string;
-  rationale?: string;
   validationPlan?: string;
   notes?: string;
   summary: string;

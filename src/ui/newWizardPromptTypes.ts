@@ -8,7 +8,6 @@ export type NewWizardValues = {
   maxCalendarDays?: number;
   leadingIndicator: LeadingIndicator;
   primaryAssumption: string;
-  rationale: string;
   validationPlan: string;
   notes: string;
 };

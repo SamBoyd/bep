@@ -43,13 +43,6 @@ export const WIZARD_GUIDANCE_COPY = {
     placeholder:
       "Example: Users who start onboarding from the pricing page convert better because they already understand the value.",
   },
-  rationale: {
-    title: "Why do you believe this assumption?",
-    helpText:
-      "Summarize the evidence or reasoning behind the bet (data, user feedback, prior experiments, market signals, etc.).",
-    placeholder:
-      "Example: Session replays and interviews show pricing-page visitors ask fewer setup questions, and they convert at a higher rate in current funnel data.",
-  },
   validation_plan: {
     title: "How will you validate whether the bet worked?",
     helpText:
@@ -228,16 +221,6 @@ function buildPrompt(
       "Enter a value.",
       WIZARD_GUIDANCE_COPY.primary_assumption.helpText,
       WIZARD_GUIDANCE_COPY.primary_assumption.placeholder,
-    );
-  }
-
-  if (step === "rationale") {
-    return requiredText(
-      WIZARD_GUIDANCE_COPY.rationale.title,
-      draft.rationale,
-      "Enter a value.",
-      WIZARD_GUIDANCE_COPY.rationale.helpText,
-      WIZARD_GUIDANCE_COPY.rationale.placeholder,
     );
   }
 

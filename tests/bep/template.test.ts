@@ -12,7 +12,6 @@ describe("renderNewBetMarkdown", () => {
         target: 20,
       },
       primaryAssumption: "People need a simpler signup flow.",
-      rationale: "Signup drop-off is the biggest funnel bottleneck.",
       validationPlan: "Track signup completion rate over two weeks.",
       notes: "Coordinate with marketing launch.",
     });
@@ -30,8 +29,11 @@ describe("renderNewBetMarkdown", () => {
     });
     expect(parsed.data).not.toHaveProperty("default_action");
     expect(parsed.content).toContain("# Budgeted Engineering Proposal");
+    expect(parsed.content).toContain("## 1. Primary Assumption");
+    expect(parsed.content).toContain("## 2. Validation Plan");
+    expect(parsed.content).toContain("## 3. Notes");
+    expect(parsed.content).not.toContain("## 2. Rationale");
     expect(parsed.content).toContain("People need a simpler signup flow.");
-    expect(parsed.content).toContain("Signup drop-off is the biggest funnel bottleneck.");
     expect(parsed.content).toContain("Track signup completion rate over two weeks.");
     expect(parsed.content).toContain("Coordinate with marketing launch.");
   });
@@ -46,7 +48,6 @@ describe("renderNewBetMarkdown", () => {
         target: 10,
       },
       primaryAssumption: "New onboarding copy reduces confusion.",
-      rationale: "Support tickets indicate unclear onboarding steps.",
       validationPlan: "Compare activation within first 24 hours.",
       notes: "",
     });
@@ -70,7 +71,6 @@ describe("renderNewBetMarkdown", () => {
       maxHours: 12,
       maxCalendarDays: 10,
       primaryAssumption: "Refined CTAs improve conversion.",
-      rationale: "Past tests showed CTA copy changes impact conversion.",
       validationPlan: "Run A/B test and review conversion deltas.",
       notes: "Requires design review.",
     });

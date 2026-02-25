@@ -254,7 +254,6 @@ function buildPrompt(context: SelectionContext): string {
       id: bet.id,
       status: bet.status,
       assumption: bet.assumption,
-      rationale: bet.rationale,
       validation_plan: bet.validationPlan,
       notes: bet.notes,
       summary: bet.summary,

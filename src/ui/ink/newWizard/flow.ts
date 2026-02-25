@@ -20,7 +20,6 @@ export type WizardStepId =
   | "mixpanel_operator"
   | "mixpanel_target"
   | "primary_assumption"
-  | "rationale"
   | "validation_plan"
   | "notes";
 
@@ -37,7 +36,6 @@ export type WizardDraftValues = {
   mixpanelOperator?: ManualComparisonOperator;
   mixpanelTarget?: number;
   primaryAssumption?: string;
-  rationale?: string;
   validationPlan?: string;
   notes?: string;
 };
@@ -47,7 +45,7 @@ export function createInitialWizardDraft(): WizardDraftValues {
 }
 
 export function getWizardSteps(providerType?: LeadingIndicatorType): WizardStepId[] {
-  const steps: WizardStepId[] = ["bet_name", "primary_assumption", "rationale", "leading_indicator_type"];
+  const steps: WizardStepId[] = ["bet_name", "primary_assumption", "leading_indicator_type"];
 
   if (providerType === "manual") {
     steps.push("manual_operator", "manual_target");
@@ -140,10 +138,6 @@ export function applyTextStepValue(
     return { ...draft, primaryAssumption: rawValue.trim() };
   }
 
-  if (step === "rationale") {
-    return { ...draft, rationale: rawValue.trim() };
-  }
-
   if (step === "validation_plan") {
     return { ...draft, validationPlan: rawValue.trim() };
   }
@@ -204,7 +198,7 @@ export function finalizeWizardDraft(draft: WizardDraftValues): NewWizardValues |
     return null;
   }
 
-  if (!draft.primaryAssumption || !draft.rationale || !draft.validationPlan || draft.notes === undefined) {
+  if (!draft.primaryAssumption || !draft.validationPlan || draft.notes === undefined) {
     return null;
   }
 
@@ -214,7 +208,6 @@ export function finalizeWizardDraft(draft: WizardDraftValues): NewWizardValues |
     maxCalendarDays: draft.capType === "max_calendar_days" ? draft.capValue : undefined,
     leadingIndicator,
     primaryAssumption: draft.primaryAssumption,
-    rationale: draft.rationale,
     validationPlan: draft.validationPlan,
     notes: draft.notes,
   };

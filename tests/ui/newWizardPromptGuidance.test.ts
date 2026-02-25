@@ -11,16 +11,6 @@ describe("Ink new wizard guidance copy", () => {
     });
   });
 
-  test("defines clear prompt copy for rationale", () => {
-    expect(WIZARD_GUIDANCE_COPY.rationale).toEqual({
-      title: "Why do you believe this assumption?",
-      helpText:
-        "Summarize the evidence or reasoning behind the bet (data, user feedback, prior experiments, market signals, etc.).",
-      placeholder:
-        "Example: Session replays and interviews show pricing-page visitors ask fewer setup questions, and they convert at a higher rate in current funnel data.",
-    });
-  });
-
   test("defines clear prompt copy for validation plan", () => {
     expect(WIZARD_GUIDANCE_COPY.validation_plan).toEqual({
       title: "How will you validate whether the bet worked?",
@@ -29,5 +19,9 @@ describe("Ink new wizard guidance copy", () => {
       placeholder:
         "Example: Compare signup-to-activation rate for users exposed to variant B vs control for 14 days; consider the bet validated if activation improves by >=10% with no drop in trial starts.",
     });
+  });
+
+  test("does not define rationale guidance copy", () => {
+    expect(WIZARD_GUIDANCE_COPY).not.toHaveProperty("rationale");
   });
 });

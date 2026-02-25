@@ -41,6 +41,35 @@ describe("buildBetSelectionContext", () => {
     }
   });
 
+  test("extracts validation plan and notes from both legacy and current section numbering", async () => {
+    const tempDir = await createTempDir();
+
+    try {
+      await initRepo(tempDir);
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "legacy.md"),
+        `---\nid: legacy\nstatus: pending\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n\n## 1. Primary Assumption\nLegacy assumption.\n\n## 2. Rationale\nLegacy rationale.\n\n## 3. Validation Plan\nLegacy validation.\n\n## 4. Notes\nLegacy notes.\n`,
+        "utf8",
+      );
+      await writeFile(
+        path.join(tempDir, BETS_DIR, "current.md"),
+        `---\nid: current\nstatus: pending\ncreated_at: 2026-02-18T00:00:00.000Z\n---\n\n## 1. Primary Assumption\nCurrent assumption.\n\n## 2. Validation Plan\nCurrent validation.\n\n## 3. Notes\nCurrent notes.\n`,
+        "utf8",
+      );
+
+      const context = await buildBetSelectionContext(tempDir, "post-tool-use", null);
+      const legacy = context.bets.find((bet) => bet.id === "legacy");
+      const current = context.bets.find((bet) => bet.id === "current");
+
+      expect(legacy?.validationPlan).toContain("Legacy validation.");
+      expect(legacy?.notes).toContain("Legacy notes.");
+      expect(current?.validationPlan).toContain("Current validation.");
+      expect(current?.notes).toContain("Current notes.");
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
   test("skips malformed bet files without throwing", async () => {
     const tempDir = await createTempDir();
 
