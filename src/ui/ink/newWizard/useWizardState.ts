@@ -263,6 +263,8 @@ export function useWizardState(
   options: NewWizardOptions,
 ): {
   prompt: WizardPrompt;
+  step: WizardStepId;
+  draft: WizardDraftValues;
   uiState: WizardUiState;
   actions: WizardStateActions;
 } {
@@ -350,6 +352,8 @@ export function useWizardState(
 
   return {
     prompt,
+    step,
+    draft,
     uiState,
     actions: { goBack, submitSelect, submitText, cancel, setUiState },
   };

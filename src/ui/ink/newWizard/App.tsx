@@ -1,3 +1,6 @@
+import { listRegisteredProviderTypes } from "../../../providers/registry.js";
+import { buildBetCardPreviewModel } from "./betCardPreview.js";
+import { BetCard } from "./components/BetCard.js";
 import { WizardFrame } from "./components/WizardFrame.js";
 import { SelectStep } from "./components/SelectStep.js";
 import { TextStep } from "./components/TextStep.js";
@@ -12,16 +15,26 @@ export function InkNewWizardApp({
   onComplete: (result: NewWizardResult) => void;
   options: NewWizardOptions;
 }) {
-  const { prompt, uiState, actions } = useWizardState(onComplete, options);
+  const { prompt, step, draft, uiState, actions } = useWizardState(onComplete, options);
   useWizardInput(prompt, uiState, actions);
+  const betCardModel = buildBetCardPreviewModel({
+    draft,
+    step,
+    prompt,
+    uiState,
+    providerTypes: listRegisteredProviderTypes(),
+  });
 
   return (
-    <WizardFrame title={prompt.title} helpText={prompt.helpText} error={uiState.error}>
-      {"options" in prompt ? (
-        <SelectStep prompt={prompt} selectedIndex={uiState.selectIndex} />
-      ) : (
-        <TextStep prompt={prompt} value={uiState.textValue} />
-      )}
-    </WizardFrame>
+    <>
+      <BetCard model={betCardModel} />
+      <WizardFrame title={prompt.title} helpText={prompt.helpText} error={uiState.error}>
+        {"options" in prompt ? (
+          <SelectStep prompt={prompt} selectedIndex={uiState.selectIndex} />
+        ) : (
+          <TextStep prompt={prompt} value={uiState.textValue} />
+        )}
+      </WizardFrame>
+    </>
   );
 }
