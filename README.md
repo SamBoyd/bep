@@ -19,7 +19,7 @@ BEP prevents “Feature A → B → C” before A is validated by turning “bui
 Rabbit-hole protection for feature work: BEP is the moment where you decide, *do we validate, or do we keep building?*
 
 ## How it works (3 lines)
-1. **Define a bet** (`bep new`) with a cap + validation target.
+1. **Define a bet** (`bep new`) with a time cap + validation target.
 2. **Track time** manually (`bep start`/`bep stop`) or automatically via Claude Code hooks (`bep init --install-hooks`).
 3. **Use the guardrail**: `bep status` shows when you’re nearing/at cap; Claude hooks can hard-stop new prompts when you’re at cap.
 
@@ -40,6 +40,8 @@ Validation checks run via a provider configured in `.bep.providers.json` (or by 
 
 - **Mixpanel** (`mixpanel`) — see `docs/providers/mixpanel.md`.
 - **Manual entry** (`manual`) — you type the observed value during `bep check`.
+
+Future work planned to support; Amplitude, PostHog, Supabase..
 
 ## Quick start (Claude Code)
 
