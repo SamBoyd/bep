@@ -7,6 +7,7 @@ import { TextStep } from "./components/TextStep.js";
 import { useWizardInput } from "./useWizardInput.js";
 import { useWizardState } from "./useWizardState.js";
 import type { NewWizardOptions, NewWizardResult } from "../../newWizardPromptTypes.js";
+import { Text } from "ink";
 
 export function InkNewWizardApp({
   onComplete,
@@ -27,6 +28,7 @@ export function InkNewWizardApp({
 
   return (
     <>
+      <Text bold>Create a new bet:</Text>
       <BetCard model={betCardModel} />
       <WizardFrame title={prompt.title} helpText={prompt.helpText} error={uiState.error}>
         {"options" in prompt ? (

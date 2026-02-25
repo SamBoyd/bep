@@ -194,7 +194,7 @@ function buildProviderConfig(effective: EffectivePreviewState): {
 } {
   if (effective.leadingIndicatorType === "mixpanel") {
     return {
-      title: "Config",
+      title: "Mixpanel config",
       fields: [
         {
           label: "workspace id",
@@ -214,7 +214,7 @@ function buildProviderConfig(effective: EffectivePreviewState): {
 
   if (effective.leadingIndicatorType === "manual") {
     return {
-      title: "Config",
+      title: "Manual config",
       fields: [
         {
           label: "operator",
