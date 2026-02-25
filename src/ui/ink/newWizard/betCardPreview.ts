@@ -180,7 +180,7 @@ function buildValidationRuleSummary(effective: EffectivePreviewState): string {
 function buildCapSummary(effective: EffectivePreviewState): string {
   const capValue = effective.capValueText;
   if (!effective.capType || !capValue) {
-    return "Set exposure cap type and value";
+    return "Set time cap type and value";
   }
 
   return effective.capType === "max_calendar_days"
@@ -271,4 +271,3 @@ export function buildBetCardPreviewModel(args: {
     capSummary: buildCapSummary(effective),
   };
 }
-

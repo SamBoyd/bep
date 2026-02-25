@@ -53,7 +53,7 @@ describe("BetCard", () => {
     expect(text).toContain("Mixpanel");
     expect(text).toContain("Validation passes when:");
     expect(text).toContain("Mixpanel metric > 10");
-    expect(text).toContain("Exposure cap:");
+    expect(text).toContain("Time cap:");
     expect(text).toContain("14 calendar days");
     expect(text).not.toContain("undefined");
   });

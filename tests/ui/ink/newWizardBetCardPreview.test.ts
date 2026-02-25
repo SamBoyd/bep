@@ -40,7 +40,7 @@ describe("buildBetCardPreviewModel", () => {
     expect(model.betName.empty).toBe(true);
     expect(model.betName.value).toContain("Not entered");
     expect(model.providers.map((provider) => provider.type)).toEqual(["manual", "mixpanel"]);
-    expect(model.capSummary).toContain("Set exposure cap");
+    expect(model.capSummary).toContain("Set time cap");
     expect(model.validationRuleSummary).toContain("Select a provider");
   });
 
@@ -107,7 +107,7 @@ describe("buildBetCardPreviewModel", () => {
     });
 
     expect(model.validationRuleSummary).toBe("Mixpanel metric > 42");
-    expect(model.capSummary).toBe("Set exposure cap type and value");
+    expect(model.capSummary).toBe("Set time cap type and value");
 
     const withCapPrompt: TextPromptRequest = { title: "Cap value" };
     const withCapModel = buildBetCardPreviewModel({
@@ -143,4 +143,3 @@ describe("buildBetCardPreviewModel", () => {
     expect(model.primaryAssumption.empty).toBe(false);
   });
 });
-

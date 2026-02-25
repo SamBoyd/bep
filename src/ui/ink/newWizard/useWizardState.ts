@@ -97,8 +97,10 @@ function buildPrompt(
 
   if (step === "cap_type") {
     return {
-      title: "Choose your exposure cap type",
+      title: "Choose your time cap type",
       initialValue: draft.capType,
+      helpText:
+        "Set the maximum amount of time you will allow this bet to run before you must stop, evaluate, or extend it.",
       options: [
         { label: "Cap by hours", value: "max_hours" },
         { label: "Cap by calendar days", value: "max_calendar_days" },
@@ -109,6 +111,10 @@ function buildPrompt(
   if (step === "cap_value") {
     return {
       title: `${draft.capType === "max_calendar_days" ? "Max calendar days" : "Max hours"} (required).`,
+      helpText:
+        draft.capType === "max_calendar_days"
+          ? "Enter the maximum number of calendar days this bet is allowed to run before review."
+          : "Enter the maximum number of hours this bet is allowed to run before review.",
       initialValue: typeof draft.capValue === "number" ? String(draft.capValue) : undefined,
       validate(rawValue) {
         const trimmed = rawValue.trim();

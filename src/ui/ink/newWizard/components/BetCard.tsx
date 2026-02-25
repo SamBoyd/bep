@@ -137,7 +137,7 @@ export function BetCard({ model }: { model: BetCardPreviewModel }) {
             <Text>{model.validationRuleSummary}</Text>
           </Box>
           <Box marginTop={1} flexDirection="column">
-            <Text dimColor>Exposure cap:</Text>
+            <Text dimColor>Time cap:</Text>
             <Text>{model.capSummary}</Text>
           </Box>
         </Section>
