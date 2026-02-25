@@ -14,6 +14,7 @@ export type TextPromptRequest = {
   title: string;
   initialValue?: string;
   helpText?: string;
+  placeholder?: string;
   optional?: boolean;
   validate?: (rawValue: string) => string | undefined;
 };

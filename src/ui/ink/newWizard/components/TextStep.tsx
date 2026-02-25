@@ -8,10 +8,14 @@ export function TextStep({
   prompt: TextPromptRequest;
   value: string;
 }) {
+  const showPlaceholder = value.length === 0 && Boolean(prompt.placeholder);
+
   return (
     <Box flexDirection="column">
       <Text>
-        <Text color="cyan">&gt;</Text> {value}
+        <Texet color="cyan">&gt;</Text>{" "}
+        {value}
+        {showPlaceholder ? <Text dimColor>{prompt.placeholder}</Text> : null}
         <Text inverse> </Text>
       </Text>
       {prompt.optional ? <Text dimColor>Optional field.</Text> : null}

@@ -35,6 +35,30 @@ export type WizardStateActions = {
   setUiState: React.Dispatch<React.SetStateAction<WizardUiState>>;
 };
 
+export const WIZARD_GUIDANCE_COPY = {
+  primary_assumption: {
+    title: "What must be true for this bet to work?",
+    helpText:
+      "Write the core assumption you are betting on. Focus on one claim that could be proven wrong.",
+    placeholder:
+      "Example: Users who start onboarding from the pricing page convert better because they already understand the value.",
+  },
+  rationale: {
+    title: "Why do you believe this assumption?",
+    helpText:
+      "Summarize the evidence or reasoning behind the bet (data, user feedback, prior experiments, market signals, etc.).",
+    placeholder:
+      "Example: Session replays and interviews show pricing-page visitors ask fewer setup questions, and they convert at a higher rate in current funnel data.",
+  },
+  validation_plan: {
+    title: "How will you validate whether the bet worked?",
+    helpText:
+      "Describe the metric(s), comparison, and decision rule you will use. Include what outcome would count as success or failure.",
+    placeholder:
+      "Example: Compare signup-to-activation rate for users exposed to variant B vs control for 14 days; consider the bet validated if activation improves by >=10% with no drop in trial starts.",
+  },
+} as const;
+
 function isProviderType(value: string): value is LeadingIndicatorType {
   return value === "manual" || value === "mixpanel";
 }
@@ -49,10 +73,12 @@ function buildPrompt(
     initialValue: string | undefined,
     emptyMessage: string,
     helpText?: string,
+    placeholder?: string,
   ): TextPromptRequest => ({
     title,
     initialValue,
     helpText,
+    placeholder,
     validate(rawValue) {
       if (rawValue.trim().length === 0) {
         return emptyMessage;
@@ -196,15 +222,33 @@ function buildPrompt(
   }
 
   if (step === "primary_assumption") {
-    return requiredText("Primary assumption (required).", draft.primaryAssumption, "Enter a value.");
+    return requiredText(
+      WIZARD_GUIDANCE_COPY.primary_assumption.title,
+      draft.primaryAssumption,
+      "Enter a value.",
+      WIZARD_GUIDANCE_COPY.primary_assumption.helpText,
+      WIZARD_GUIDANCE_COPY.primary_assumption.placeholder,
+    );
   }
 
   if (step === "rationale") {
-    return requiredText("Rationale (required).", draft.rationale, "Enter a value.");
+    return requiredText(
+      WIZARD_GUIDANCE_COPY.rationale.title,
+      draft.rationale,
+      "Enter a value.",
+      WIZARD_GUIDANCE_COPY.rationale.helpText,
+      WIZARD_GUIDANCE_COPY.rationale.placeholder,
+    );
   }
 
   if (step === "validation_plan") {
-    return requiredText("Validation plan (required).", draft.validationPlan, "Enter a value.");
+    return requiredText(
+      WIZARD_GUIDANCE_COPY.validation_plan.title,
+      draft.validationPlan,
+      "Enter a value.",
+      WIZARD_GUIDANCE_COPY.validation_plan.helpText,
+      WIZARD_GUIDANCE_COPY.validation_plan.placeholder,
+    );
   }
 
   return {
