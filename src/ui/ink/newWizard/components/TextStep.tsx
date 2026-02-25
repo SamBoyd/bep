@@ -15,8 +15,8 @@ export function TextStep({
       <Text>
         <Text color="cyan">&gt;</Text>{" "}
         {value}
-        {showPlaceholder ? <Text dimColor>{prompt.placeholder}</Text> : null}
         <Text inverse> </Text>
+        {showPlaceholder ? <Text dimColor>{prompt.placeholder}</Text> : null}
       </Text>
       {prompt.optional ? <Text dimColor>Optional field.</Text> : null}
     </Box>
